@@ -66,20 +66,12 @@ int log_force_debug = 0;
 int log_debug_suppressed = 0;
 
 vector<int> header_count;
-vector<char*> log_id_cache;
 vector<shared_str> string_buf;
 int string_buf_index = -1;
 
 static struct timeval initial_tv = { 0, 0 };
 static bool next_print_log = false;
 static int log_newline_count = 0;
-
-static void log_id_cache_clear()
-{
-	for (auto p : log_id_cache)
-		free(p);
-	log_id_cache.clear();
-}
 
 #if defined(_WIN32) && !defined(__MINGW32__)
 // this will get time information and return it in timeval, simulating gettimeofday()
@@ -494,7 +486,6 @@ void log_push()
 void log_pop()
 {
 	header_count.pop_back();
-	log_id_cache_clear();
 	string_buf.clear();
 	string_buf_index = -1;
 	log_flush();
@@ -601,7 +592,6 @@ void log_reset_stack()
 {
 	while (header_count.size() > 1)
 		header_count.pop_back();
-	log_id_cache_clear();
 	string_buf.clear();
 	string_buf_index = -1;
 	log_flush();
@@ -644,7 +634,7 @@ const char *log_signal(const RTLIL::SigSpec &sig, bool autoint)
 	}
 }
 
-const char *log_const(const RTLIL::Const &value, bool autoint)
+std::string log_const(const RTLIL::Const &value, bool autoint)
 {
 	if ((value.flags & RTLIL::CONST_FLAG_STRING) == 0)
 		return log_signal(value, autoint);
@@ -664,8 +654,7 @@ const char *log_const(const RTLIL::Const &value, bool autoint)
 
 const char *log_id(const RTLIL::IdString &str)
 {
-	log_id_cache.push_back(strdup(str.c_str()));
-	const char *p = log_id_cache.back();
+	const char *p = str.c_str();
 	if (p[0] != '\\')
 		return p;
 	if (p[1] == '$' || p[1] == '\\' || p[1] == 0)

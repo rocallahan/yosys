@@ -1006,7 +1006,7 @@ struct SimInstance
 			child.second->register_signals(id);
 	}
 
-	void write_output_header(std::function<void(IdString)> enter_scope, std::function<void()> exit_scope, std::function<void(const char*, int, Wire*, int, bool)> register_signal)
+	void write_output_header(std::function<void(IdString)> enter_scope, std::function<void()> exit_scope, std::function<void(const std::string&, int, Wire*, int, bool)> register_signal)
 	{
 		int exit_scopes = 1;
 		if (shared->hdlname && instance != nullptr && instance->name.isPublic() && instance->has_attribute(ID::hdlname)) {
@@ -1039,7 +1039,7 @@ struct SimInstance
 				hdlname.pop_back();
 				for (auto name : hdlname)
 					enter_scope("\\" + name);
-				register_signal(signal_name.c_str(), GetSize(signal.first), signal.first, signal.second.first, registers.count(signal.first)!=0);
+				register_signal(signal_name, GetSize(signal.first), signal.first, signal.second.first, registers.count(signal.first)!=0);
 				for (auto name : hdlname)
 					exit_scope();
 			} else
@@ -1071,7 +1071,7 @@ struct SimInstance
 				int output_id = trace_index.second.first;
 				int index = trace_index.first;
 				register_signal(
-						stringf("%s[%d]", signal_name.c_str(), (index + mdb.mem->start_offset)).c_str(),
+						stringf("%s[%d]", signal_name.c_str(), (index + mdb.mem->start_offset)),
 						mdb.mem->width, nullptr, output_id, true);
 			}
 
@@ -2300,10 +2300,10 @@ struct SimWorker : SimShared
 	}
 };
 
-std::string form_vcd_name(const char *name, int size, Wire *w)
+std::string form_vcd_name(const std::string &name, int size, Wire *w)
 {
 	std::string full_name = name;
-	bool have_bracket = strchr(name, '[');
+	bool have_bracket = strchr(name.c_str(), '[');
 	if (w) {
 		if (have_bracket || !(w->start_offset==0 && w->width==1)) {
 			full_name += stringf(" [%d:%d]",
@@ -2342,7 +2342,7 @@ struct VCDWriter : public OutputWriter
 		worker->top->write_output_header(
 			[this](IdString name) { vcdfile << stringf("$scope module %s $end\n", log_id(name)); },
 			[this]() { vcdfile << stringf("$upscope $end\n");},
-			[this,use_signal](const char *name, int size, Wire *w, int id, bool is_reg) {
+			[this,use_signal](const std::string &name, int size, Wire *w, int id, bool is_reg) {
 				if (!use_signal.at(id)) return;
 				// Works around gtkwave trying to parse everything past the last [ in a signal
 				// name. While the emitted range doesn't necessarily match the wire's range,
@@ -2408,7 +2408,7 @@ struct FSTWriter : public OutputWriter
 	   	worker->top->write_output_header(
 			[this](IdString name) { fstWriterSetScope(fstfile, FST_ST_VCD_MODULE, stringf("%s",log_id(name)).c_str(), nullptr); },
 			[this]() { fstWriterSetUpscope(fstfile); },
-			[this,use_signal](const char *name, int size, Wire *w, int id, bool is_reg) {
+			[this,use_signal](const std::string &name, int size, Wire *w, int id, bool is_reg) {
 				if (!use_signal.at(id)) return;
 				std::string full_name = form_vcd_name(name, size, w);
 				fstHandle fst_id = fstWriterCreateVar(fstfile, is_reg ? FST_VT_VCD_REG : FST_VT_VCD_WIRE, FST_VD_IMPLICIT, size,
@@ -2494,7 +2494,7 @@ struct AIWWriter : public OutputWriter
 		worker->top->write_output_header(
 			[](IdString) {},
 			[]() {},
-			[this](const char */*name*/, int /*size*/, Wire *wire, int id, bool) { if (wire != nullptr) mapping[wire] = id; }
+			[this](const std::string &/*name*/, int /*size*/, Wire *wire, int id, bool) { if (wire != nullptr) mapping[wire] = id; }
 		);
 
 		std::map<int, Yosys::RTLIL::Const> current;

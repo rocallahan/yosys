@@ -478,6 +478,7 @@ namespace RTLIL {
 		return unescape_id(str.str());
 	}
 
+	// `str` must live unchanged at least as long as the returned pointer is used.
 	static inline const char *id2cstr(const RTLIL::IdString &str) {
 		return log_id(str);
 	}

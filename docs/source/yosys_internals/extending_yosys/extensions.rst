@@ -207,6 +207,8 @@ Use ``log_id()`` to create a C-string for an ``RTLIL::IdString``:
 
     log("Name of this module: %s\n", log_id(module->name));
 
+The ``RTLIL::IdString`` must live as long as the returned C-string is used.
+
 Use ``log_header()`` and ``log_push()``/\ ``log_pop()`` to structure log
 messages:
 
