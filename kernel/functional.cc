@@ -598,7 +598,7 @@ private:
 			if (mem == nullptr) {
 				log_assert(cell->has_memid());
 				log_error("The design contains an unpacked memory at %s. This is not supported by the functional backend. "
-					"Call memory_collect to avoid this error.\n", log_const(cell->parameters.at(ID(MEMID))));
+					"Call memory_collect to avoid this error.\n", log_const(cell->parameters.at(ID(MEMID))).c_str());
 			}
 			Node node = handle_memory(mem);
 			factory.update_pending(cell_outputs.at({cell, ID(RD_DATA)}), node);

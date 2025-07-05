@@ -850,7 +850,7 @@ struct FormalFfPass : public Pass {
 						if (ff.val_init != before) {
 							log("Setting unused undefined initial value of %s.%s (%s) from %s to %s\n",
 									log_id(module), log_id(cell), log_id(cell->type),
-									log_const(before), log_const(ff.val_init));
+									log_const(before).c_str(), log_const(ff.val_init).c_str());
 							worker.initvals.set_init(ff.sig_q, ff.val_init);
 						}
 					}

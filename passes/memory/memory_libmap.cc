@@ -350,7 +350,7 @@ struct MemMapping {
 			for(auto opt : pg.variants[pvi].options){
 				if (!first) rejected_cfg_debug_msgs += ", ";
 				rejected_cfg_debug_msgs += opt.first;
-				rejected_cfg_debug_msgs += stringf(" = %s", log_const(opt.second));
+				rejected_cfg_debug_msgs += stringf(" = %s", log_const(opt.second).c_str());
 				first = false;
 			}
 			rejected_cfg_debug_msgs += "] of port group [";
@@ -392,7 +392,7 @@ void MemMapping::dump_configs(int stage) {
 void MemMapping::dump_config(MemConfig &cfg) {
 	log_debug("- %s:\n", log_id(cfg.def->id));
 	for (auto &it: cfg.def->options)
-		log_debug("  - option %s %s\n", it.first.c_str(), log_const(it.second));
+		log_debug("  - option %s %s\n", it.first.c_str(), log_const(it.second).c_str());
 	log_debug("  - emulation score: %d\n", cfg.score_emu);
 	log_debug("  - replicates (for ports): %d\n", cfg.repl_port);
 	log_debug("  - replicates (for data): %d\n", cfg.repl_d);
@@ -432,7 +432,7 @@ void MemMapping::dump_config(MemConfig &cfg) {
 			log_debug("  - write port %d: port group %s (shared with read port %d)\n", i, cfg.def->port_groups[pcfg.port_group].names[0].c_str(), pcfg.rd_port);
 
 		for (auto &it: pcfg.def->options)
-			log_debug("    - option %s %s\n", it.first.c_str(), log_const(it.second));
+			log_debug("    - option %s %s\n", it.first.c_str(), log_const(it.second).c_str());
 		if (cfg.def->width_mode == WidthMode::PerPort) {
 			std::stringstream os;
 			for (int i = pcfg.def->min_wr_wide_log2; i <= pcfg.def->max_wr_wide_log2; i++)
@@ -453,7 +453,7 @@ void MemMapping::dump_config(MemConfig &cfg) {
 		else
 			log_debug("  - read port %d: port group %s (shared with write port %d)\n", i, cfg.def->port_groups[pcfg.port_group].names[0].c_str(), pcfg.wr_port);
 		for (auto &it: pcfg.def->options)
-			log_debug("    - option %s %s\n", it.first.c_str(), log_const(it.second));
+			log_debug("    - option %s %s\n", it.first.c_str(), log_const(it.second).c_str());
 		if (cfg.def->width_mode == WidthMode::PerPort) {
 			std::stringstream os;
 			for (int i = pcfg.def->min_rd_wide_log2; i <= pcfg.def->max_rd_wide_log2; i++)

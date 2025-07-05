@@ -639,17 +639,7 @@ std::string log_const(const RTLIL::Const &value, bool autoint)
 	if ((value.flags & RTLIL::CONST_FLAG_STRING) == 0)
 		return log_signal(value, autoint);
 
-	std::string str = "\"" + value.decode_string() + "\"";
-
-	if (string_buf.size() < 100) {
-		string_buf.push_back(str);
-		return string_buf.back().c_str();
-	} else {
-		if (++string_buf_index == 100)
-			string_buf_index = 0;
-		string_buf[string_buf_index] = str;
-		return string_buf[string_buf_index].c_str();
-	}
+	return "\"" + value.decode_string() + "\"";
 }
 
 const char *log_id(const RTLIL::IdString &str)

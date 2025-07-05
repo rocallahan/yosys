@@ -1951,7 +1951,7 @@ struct SimWorker : SimShared
 			Const value = yw.get_bits(t, signal.bits_offset, signal.width);
 
 			if (debug)
-				log("yw: set %s to %s\n", signal.path.str().c_str(), log_const(value));
+				log("yw: set %s to %s\n", signal.path.str().c_str(), log_const(value).c_str());
 
 			if (found_path.wire != nullptr) {
 				found_path.instance->set_state_parent_drivers(

@@ -230,7 +230,7 @@ struct ExampleDtPass : public Pass
 					if (param.second.empty())
 						log("[%s]", log_id(param.first));
 					else
-						log("[%s=%s]", log_id(param.first), log_const(param.second));
+						log("[%s=%s]", log_id(param.first), log_const(param.second).c_str());
 				}
 				log("(");
 
