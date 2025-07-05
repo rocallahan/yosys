@@ -195,7 +195,7 @@ struct SmvWorker
 			return rvalue(sig);
 
 		const char *temp_id = cid();
-//		f << stringf("    %s : unsigned word[%d]; -- %s\n", temp_id, GetSize(sig), log_signal(sig));
+//		f << stringf("    %s : unsigned word[%d]; -- %s\n", temp_id, GetSize(sig), log_signal(sig).c_str());
 
 		int offset = 0;
 		for (auto bit : sig) {
@@ -275,7 +275,7 @@ struct SmvWorker
 					const char *b_shr = rvalue_u(sig_b);
 					const char *b_shl = cid();
 
-//					f << stringf("    %s : unsigned word[%d]; -- neg(%s)\n", b_shl, GetSize(sig_b), log_signal(sig_b));
+//					f << stringf("    %s : unsigned word[%d]; -- neg(%s)\n", b_shl, GetSize(sig_b), log_signal(sig_b).c_str());
 					definitions.push_back(stringf("%s := unsigned(-%s);", b_shl, rvalue_s(sig_b)));
 
 					string expr_shl = stringf("resize(%s << %s[%d:0], %d)", expr_a.c_str(), b_shl, shift_b_width-1, width_y);
@@ -497,7 +497,7 @@ struct SmvWorker
 
 			if (cell->type == ID($dff))
 			{
-				vars.push_back(stringf("%s : unsigned word[%d]; -- %s", lvalue(cell->getPort(ID::Q)), GetSize(cell->getPort(ID::Q)), log_signal(cell->getPort(ID::Q))));
+				vars.push_back(stringf("%s : unsigned word[%d]; -- %s", lvalue(cell->getPort(ID::Q)), GetSize(cell->getPort(ID::Q)), log_signal(cell->getPort(ID::Q)).c_str()));
 				assignments.push_back(stringf("next(%s) := %s;", lvalue(cell->getPort(ID::Q)), rvalue(cell->getPort(ID::D))));
 				continue;
 			}

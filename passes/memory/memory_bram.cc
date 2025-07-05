@@ -487,7 +487,7 @@ bool replace_memory(Mem &mem, const rules_t &rules, FfInitVals *initvals, const 
 		wr_clkdom = clkdom;
 		log("      Write port #%d is in clock domain %s%s.\n",
 				cell_port_i, clkdom.second ? "" : "!",
-				port.clk_enable ? log_signal(clkdom.first) : "~async~");
+				port.clk_enable ? log_signal(clkdom.first).c_str() : "~async~");
 
 		for (; bram_port_i < GetSize(portinfos); bram_port_i++)
 		{
@@ -617,7 +617,7 @@ grow_read_ports:;
 
 		log("      Read port #%d is in clock domain %s%s.\n",
 				cell_port_i, clkdom.second ? "" : "!",
-				port.clk_enable ? log_signal(clkdom.first) : "~async~");
+				port.clk_enable ? log_signal(clkdom.first).c_str() : "~async~");
 
 		for (int bram_port_i = 0; bram_port_i < GetSize(portinfos); bram_port_i++)
 		{

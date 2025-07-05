@@ -81,7 +81,7 @@ struct EstimateSta {
 
 	void run()
 	{
-		log("Domain %s\n", log_signal(clk));
+		log("Domain %s\n", log_signal(clk).c_str());
 
 		// first, we collect launch and sample points and convert the combinational logic to AIG
 		std::vector<Cell *> combinational;
@@ -333,7 +333,7 @@ struct EstimateSta {
 					std::string src_attr = bit.wire->get_src_attribute();
 					wire_src = stringf(" source: %s", src_attr.c_str());
 				}
-				log("    wire %s%s (level %ld)\n", log_signal(bit), wire_src.c_str(), levels[node]);
+				log("    wire %s%s (level %ld)\n", log_signal(bit).c_str(), wire_src.c_str(), levels[node]);
 			}
 		}
 

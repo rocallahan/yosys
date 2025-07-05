@@ -473,7 +473,7 @@ struct SvaFsm
 			if (verific_verbose >= 2) {
 				log("    detected state explosion in DFSM generation:\n");
 				dump();
-				log("      ctrl signal: %s\n", log_signal(dnode.ctrl));
+				log("      ctrl signal: %s\n", log_signal(dnode.ctrl).c_str());
 			}
 			log_error("SVA DFSM state ctrl signal has %d (>%d) bits. Stopping to prevent exponential design size explosion.\n",
 					GetSize(dnode.ctrl), verific_sva_fsm_limit);
@@ -631,8 +631,8 @@ struct SvaFsm
 				cond_eq_cache[key] = module->Eq(NEW_ID, sig_a, sig_b);
 
 			if (verific_verbose >= 2) {
-				log("    Cond: %s := %s == %s\n", log_signal(cond_eq_cache[key]),
-						log_signal(sig_a), log_signal(sig_b));
+				log("    Cond: %s := %s == %s\n", log_signal(cond_eq_cache[key]).c_str(),
+						log_signal(sig_a).c_str(), log_signal(sig_b).c_str());
 			}
 		}
 
@@ -830,14 +830,14 @@ struct SvaFsm
 
 			for (auto &it : nodes[i].edges) {
 				if (it.second != State::S1)
-					log("          edge %s -> %d\n", log_signal(it.second), it.first);
+					log("          edge %s -> %d\n", log_signal(it.second).c_str(), it.first);
 				else
 					log("          edge -> %d\n", it.first);
 			}
 
 			for (auto &it : nodes[i].links) {
 				if (it.second != State::S1)
-					log("          link %s -> %d\n", log_signal(it.second), it.first);
+					log("          link %s -> %d\n", log_signal(it.second).c_str(), it.first);
 				else
 					log("          link -> %d\n", it.first);
 			}
@@ -859,21 +859,21 @@ struct SvaFsm
 
 			for (auto &it : unodes[i].edges) {
 				if (!it.second.empty())
-					log("          edge %s -> %d\n", log_signal(it.second), it.first);
+					log("          edge %s -> %d\n", log_signal(it.second).c_str(), it.first);
 				else
 					log("          edge -> %d\n", it.first);
 			}
 
 			for (auto &ctrl : unodes[i].accept) {
 				if (!ctrl.empty())
-					log("          accept %s\n", log_signal(ctrl));
+					log("          accept %s\n", log_signal(ctrl).c_str());
 				else
 					log("          accept\n");
 			}
 
 			for (auto &ctrl : unodes[i].cond) {
 				if (!ctrl.empty())
-					log("          cond %s\n", log_signal(ctrl));
+					log("          cond %s\n", log_signal(ctrl).c_str());
 				else
 					log("          cond\n");
 			}
@@ -893,20 +893,20 @@ struct SvaFsm
 				log("%s%d", i ? "," : "", it.first[i]);
 			log("}:%s\n", GetSize(it.first) == 1 && it.first[0] == startNode ? " [start]" : "");
 
-			log("          ctrl %s\n", log_signal(it.second.ctrl));
+			log("          ctrl %s\n", log_signal(it.second.ctrl).c_str());
 
 			for (auto &edge : it.second.edges) {
-				log("          edge %s -> {", log_signal(edge.second));
+				log("          edge %s -> {", log_signal(edge.second).c_str());
 				for (int i = 0; i < GetSize(edge.first); i++)
 					log("%s%d", i ? "," : "", edge.first[i]);
 				log("}\n");
 			}
 
 			for (auto &value : it.second.accept)
-				log("          accept %s\n", log_signal(value));
+				log("          accept %s\n", log_signal(value).c_str());
 
 			for (auto &value : it.second.reject)
-				log("          reject %s\n", log_signal(value));
+				log("          reject %s\n", log_signal(value).c_str());
 		}
 	}
 
@@ -933,13 +933,13 @@ struct SvaFsm
 		}
 
 		if (trigger_sig != State::S1)
-			log("      trigger signal: %s\n", log_signal(trigger_sig));
+			log("      trigger signal: %s\n", log_signal(trigger_sig).c_str());
 
 		if (final_accept_sig != State::Sx)
-			log("      accept signal: %s\n", log_signal(final_accept_sig));
+			log("      accept signal: %s\n", log_signal(final_accept_sig).c_str());
 
 		if (final_reject_sig != State::Sx)
-			log("      reject signal: %s\n", log_signal(final_reject_sig));
+			log("      reject signal: %s\n", log_signal(final_reject_sig).c_str());
 	}
 };
 

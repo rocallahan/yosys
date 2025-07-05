@@ -48,7 +48,7 @@ static bool find_states(RTLIL::SigSpec sig, const RTLIL::SigSpec &dff_out, RTLIL
 	assign_map.apply(sig);
 	if (sig.is_fully_const()) {
 		if (sig.is_fully_def() && states.count(sig.as_const()) == 0) {
-			log("  found state code: %s\n", log_signal(sig));
+			log("  found state code: %s\n", log_signal(sig).c_str());
 			states[sig.as_const()] = -1;
 		}
 		return true;
@@ -58,12 +58,12 @@ static bool find_states(RTLIL::SigSpec sig, const RTLIL::SigSpec &dff_out, RTLIL
 	sig2driver.find(sig, cellport_list);
 
 	if (GetSize(cellport_list) > 1) {
-		log("  found %d combined drivers for state signal %s.\n", GetSize(cellport_list), log_signal(sig));
+		log("  found %d combined drivers for state signal %s.\n", GetSize(cellport_list), log_signal(sig).c_str());
 		return false;
 	}
 
 	if (GetSize(cellport_list) < 1) {
-		log("  found no driver for state signal %s.\n", log_signal(sig));
+		log("  found no driver for state signal %s.\n", log_signal(sig).c_str());
 		return false;
 	}
 
@@ -101,12 +101,12 @@ static bool find_states(RTLIL::SigSpec sig, const RTLIL::SigSpec &dff_out, RTLIL
 					break;
 				new_reset_state.extend_u0(GetSize(*reset_state));
 				*reset_state = new_reset_state.as_const();
-				log("  found reset state: %s (guessed from mux tree)\n", log_signal(*reset_state));
+				log("  found reset state: %s (guessed from mux tree)\n", log_signal(*reset_state).c_str());
 			} while (0);
 
 		for (auto sig_s_bit : sig_s) {
 			if (ctrl.extract(sig_s_bit).empty()) {
-				log("  found ctrl input: %s\n", log_signal(sig_s_bit));
+				log("  found ctrl input: %s\n", log_signal(sig_s_bit).c_str());
 				ctrl.append(sig_s_bit);
 			}
 		}
@@ -179,8 +179,8 @@ undef_bit_in_next_state:
 
 		if (states.count(ce.values_map(ce.assign_map(dff_in)).as_const()) == 0) {
 			log("  transition: %10s %s -> INVALID_STATE(%s) %s  <ignored invalid transition!>%s\n",
-					log_signal(log_state_in), log_signal(tr.ctrl_in),
-					log_signal(ce.values_map(ce.assign_map(dff_in))), log_signal(tr.ctrl_out),
+					log_signal(log_state_in).c_str(), log_signal(tr.ctrl_in).c_str(),
+					log_signal(ce.values_map(ce.assign_map(dff_in))).c_str(), log_signal(tr.ctrl_out).c_str(),
 					undef_bit_in_next_state_mode ? " SHORTENED" : "");
 			return;
 		}
@@ -191,12 +191,12 @@ undef_bit_in_next_state:
 		if (dff_in.is_fully_def()) {
 			fsm_data.transition_table.push_back(tr);
 			log("  transition: %10s %s -> %10s %s\n",
-					log_signal(log_state_in), log_signal(tr.ctrl_in),
-					log_signal(fsm_data.state_table[tr.state_out]), log_signal(tr.ctrl_out));
+					log_signal(log_state_in).c_str(), log_signal(tr.ctrl_in).c_str(),
+					log_signal(fsm_data.state_table[tr.state_out]).c_str(), log_signal(tr.ctrl_out).c_str());
 		} else {
 			log("  transition: %10s %s -> %10s %s  <ignored undef transition!>\n",
-					log_signal(log_state_in), log_signal(tr.ctrl_in),
-					log_signal(fsm_data.state_table[tr.state_out]), log_signal(tr.ctrl_out));
+					log_signal(log_state_in).c_str(), log_signal(tr.ctrl_in).c_str(),
+					log_signal(fsm_data.state_table[tr.state_out]).c_str(), log_signal(tr.ctrl_out).c_str());
 		}
 		return;
 	}
@@ -288,7 +288,7 @@ static void extract_fsm(RTLIL::Wire *wire)
 		break;
 	}
 
-	log("  root of input selection tree: %s\n", log_signal(dff_in));
+	log("  root of input selection tree: %s\n", log_signal(dff_in).c_str());
 	if (dff_in.has_marked_bits()) {
 		log("  fsm extraction failed: incomplete input selection tree root.\n");
 		return;
@@ -299,7 +299,7 @@ static void extract_fsm(RTLIL::Wire *wire)
 	RTLIL::SigSpec ctrl_in;
 	std::map<RTLIL::Const, int> states;
 	if (!arst.is_fully_const()) {
-		log("  found reset state: %s (from async reset)\n", log_signal(reset_state));
+		log("  found reset state: %s (from async reset)\n", log_signal(reset_state).c_str());
 		states[reset_state] = -1;
 	}
 	if (!find_states(dff_in, dff_out, ctrl_in, states, &reset_state)) {
@@ -329,7 +329,7 @@ static void extract_fsm(RTLIL::Wire *wire)
 			continue;
 		if (cellport.second == ID::B && !sig_a.is_fully_const())
 			continue;
-		log("  found ctrl output: %s\n", log_signal(sig_y));
+		log("  found ctrl output: %s\n", log_signal(sig_y).c_str());
 		ctrl_out.append(sig_y);
 	}
 	ctrl_in.remove(ctrl_out);
@@ -337,8 +337,8 @@ static void extract_fsm(RTLIL::Wire *wire)
 	ctrl_in.sort_and_unify();
 	ctrl_out.sort_and_unify();
 
-	log("  ctrl inputs: %s\n", log_signal(ctrl_in));
-	log("  ctrl outputs: %s\n", log_signal(ctrl_out));
+	log("  ctrl inputs: %s\n", log_signal(ctrl_in).c_str());
+	log("  ctrl outputs: %s\n", log_signal(ctrl_out).c_str());
 
 	// Initialize fsm data struct
 

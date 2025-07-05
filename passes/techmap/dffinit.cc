@@ -139,7 +139,7 @@ struct DffinitPass : public Pass {
 
 					if (value.size() != 0) {
 						log("Setting %s.%s.%s (port=%s, net=%s) to %s.\n", log_id(module), log_id(cell), log_id(it.second),
-								log_id(it.first), log_signal(sig), log_signal(value));
+								log_id(it.first), log_signal(sig).c_str(), log_signal(value).c_str());
 						cell->setParam(it.second, value);
 					}
 				}

@@ -430,7 +430,7 @@ struct SimInstance
 				value.bits().push_back(State::Sz);
 
 		if (shared->debug)
-			log("[%s] get %s: %s\n", hiername().c_str(), log_signal(sig), log_signal(value));
+			log("[%s] get %s: %s\n", hiername().c_str(), log_signal(sig).c_str(), log_signal(value).c_str());
 		return value;
 	}
 
@@ -449,7 +449,7 @@ struct SimInstance
 			}
 
 		if (shared->debug)
-			log("[%s] set %s: %s\n", hiername().c_str(), log_signal(sig), log_signal(value));
+			log("[%s] set %s: %s\n", hiername().c_str(), log_signal(sig).c_str(), log_signal(value).c_str());
 		return did_something;
 	}
 
@@ -1256,7 +1256,7 @@ struct SimInstance
 			} else if (shared->sim_mode == SimulationMode::gate && !fst_val.is_fully_def()) { // FST data contains X
 				for(int i=0;i<fst_val.size();i++) {
 					if (fst_val[i]!=State::Sx && fst_val[i]!=sim_val[i]) {
-						log_warning("Signal '%s.%s' in file %s in simulation %s\n", scope.c_str(), log_id(item.first), log_signal(fst_val), log_signal(sim_val));
+						log_warning("Signal '%s.%s' in file %s in simulation %s\n", scope.c_str(), log_id(item.first), log_signal(fst_val).c_str(), log_signal(sim_val).c_str());
 						retVal = true;
 						break;
 					}
@@ -1264,14 +1264,14 @@ struct SimInstance
 			} else if (shared->sim_mode == SimulationMode::gold && !sim_val.is_fully_def()) { // sim data contains X
 				for(int i=0;i<sim_val.size();i++) {
 					if (sim_val[i]!=State::Sx && fst_val[i]!=sim_val[i]) {
-						log_warning("Signal '%s.%s' in file %s in simulation %s\n", scope.c_str(), log_id(item.first), log_signal(fst_val), log_signal(sim_val));
+						log_warning("Signal '%s.%s' in file %s in simulation %s\n", scope.c_str(), log_id(item.first), log_signal(fst_val).c_str(), log_signal(sim_val).c_str());
 						retVal = true;
 						break;
 					}
 				}
 			} else {
 				if (fst_val!=sim_val) {
-					log_warning("Signal '%s.%s' in file %s in simulation '%s'\n", scope.c_str(), log_id(item.first), log_signal(fst_val), log_signal(sim_val));
+					log_warning("Signal '%s.%s' in file %s in simulation '%s'\n", scope.c_str(), log_id(item.first), log_signal(fst_val).c_str(), log_signal(sim_val).c_str());
 					retVal = true;
 				}
 			}
@@ -1629,7 +1629,7 @@ struct SimWorker : SimShared
 				}
 			} else {
 				if (index < w->start_offset || index > w->start_offset + w->width)
-					log_error("Index %d for wire %s is out of range\n", index, log_signal(w));
+					log_error("Index %d for wire %s is out of range\n", index, log_signal(w).c_str());
 				if (type == "input") {
 					inputs[variable] = {SigBit(w,index-w->start_offset), false};
 				} else if (type == "init") {
@@ -1814,12 +1814,12 @@ struct SimWorker : SimShared
 							else if (c->type.in(ID($anyconst), ID($anyseq))) {
 								SigSpec sig_y= c->getPort(ID::Y);
 								if ((int)parts[1].size() != GetSize(sig_y))
-									log_error("Size of wire %s is different than provided data.\n", log_signal(sig_y));
+									log_error("Size of wire %s is different than provided data.\n", log_signal(sig_y).c_str());
 								top->set_state(sig_y, Const::from_string(parts[1]));
 							}
 						} else {
 							if ((int)parts[1].size() != w->width)
-								log_error("Size of wire %s is different than provided data.\n", log_signal(w));
+								log_error("Size of wire %s is different than provided data.\n", log_signal(w).c_str());
 							top->set_state(w, Const::from_string(parts[1]));
 						}
 					} else {
@@ -2471,7 +2471,7 @@ struct AIWWriter : public OutputWriter
 			if (!w)
 				log_error("Wire %s not present in module %s\n",log_id(escaped_s),log_id(worker->top->module));
 			if (index < w->start_offset || index > w->start_offset + w->width)
-				log_error("Index %d for wire %s is out of range\n", index, log_signal(w));
+				log_error("Index %d for wire %s is out of range\n", index, log_signal(w).c_str());
 			if (type == "input") {
 				aiw_inputs[variable] = SigBit(w,index-w->start_offset);
 				if (worker->clock.count(escaped_s)) {

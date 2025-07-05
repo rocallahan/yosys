@@ -97,7 +97,7 @@ struct LatticeGsrPass : public Pass {
 			// For finding active low FF inputs
 			pool<SigBit> inverted_gsr;
 
-			log_debug("GSR net in module %s is %s.\n", log_id(module), log_signal(gsr));
+			log_debug("GSR net in module %s is %s.\n", log_id(module), log_signal(gsr).c_str());
 			for (auto cell : module->selected_cells())
 			{
 				if (cell->type != ID($_NOT_))

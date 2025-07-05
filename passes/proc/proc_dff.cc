@@ -154,7 +154,7 @@ void proc_dff(RTLIL::Module *mod, RTLIL::Process *proc, ConstEval &ce)
 			break;
 
 		log("Creating register for signal `%s.%s' using process `%s.%s'.\n",
-				mod->name.c_str(), log_signal(sig), mod->name.c_str(), proc->name.c_str());
+				mod->name.c_str(), log_signal(sig).c_str(), mod->name.c_str(), proc->name.c_str());
 
 		RTLIL::SigSpec insig = RTLIL::SigSpec(RTLIL::State::Sz, sig.size());
 		RTLIL::SyncRule *sync_edge = NULL;
@@ -260,7 +260,7 @@ void proc_dff(RTLIL::Module *mod, RTLIL::Process *proc, ConstEval &ce)
 		// More than one reset value so we derive a dffsr formulation
 		if (async_rules.size() > 1)
 		{
-			log_warning("Complex async reset for dff `%s'.\n", log_signal(sig));
+			log_warning("Complex async reset for dff `%s'.\n", log_signal(sig).c_str());
 			gen_dffsr_complex(mod, insig, sig, sync_edge->signal, sync_edge->type == RTLIL::SyncType::STp, async_rules, proc);
 			continue;
 		}
@@ -272,7 +272,7 @@ void proc_dff(RTLIL::Module *mod, RTLIL::Process *proc, ConstEval &ce)
 
 		if (!rstval.is_fully_const() && !ce.eval(rstval))
 		{
-			log_warning("Async reset value `%s' is not constant!\n", log_signal(rstval));
+			log_warning("Async reset value `%s' is not constant!\n", log_signal(rstval).c_str());
 			gen_aldff(mod, insig, rstval, sig_q,
 					sync_edge->type == RTLIL::SyncType::STp,
 					sync_level && sync_level->type == RTLIL::SyncType::ST1,

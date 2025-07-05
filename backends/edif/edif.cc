@@ -486,7 +486,7 @@ struct EdifBackend : public Backend {
 					for (int i = 0; i < GetSize(sig); i++)
 						if (sig[i].wire == NULL && sig[i] != RTLIL::State::S0 && sig[i] != RTLIL::State::S1)
 							log_warning("Bit %d of cell port %s.%s.%s driven by %s will be left unconnected in EDIF output.\n",
-									i, log_id(module), log_id(cell), log_id(p.first), log_signal(sig[i]));
+									i, log_id(module), log_id(cell), log_id(p.first), log_signal(sig[i]).c_str());
 						else {
 							int member_idx = lsbidx ? i : GetSize(sig)-i-1;
 							auto m = design->module(cell->type);
@@ -519,7 +519,7 @@ struct EdifBackend : public Backend {
 						continue;
 					} else {
 						for (auto &ref : it.second)
-							log_error("Don't know how to handle %s on %s.\n", log_signal(sig), ref.first.c_str());
+							log_error("Don't know how to handle %s on %s.\n", log_signal(sig).c_str(), ref.first.c_str());
 						log_abort();
 					}
 				}

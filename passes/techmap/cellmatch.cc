@@ -123,7 +123,7 @@ bool derive_module_luts(Module *m, std::vector<uint64_t> &luts)
 
 			if (!ceval.eval(bit)) {
 				log("Failed to evaluate output '%s' in module '%s'.\n",
-					log_signal(outputs[j]), log_id(m));
+					log_signal(outputs[j]).c_str(), log_id(m));
 				return false;
 			}
 

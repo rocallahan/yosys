@@ -147,7 +147,7 @@ struct MuxcoverWorker
 			}
 
 			if (!tree.muxes.empty()) {
-				log("    Found tree with %d MUXes at root %s.\n", GetSize(tree.muxes), log_signal(tree.root));
+				log("    Found tree with %d MUXes at root %s.\n", GetSize(tree.muxes), log_signal(tree.root).c_str());
 				tree_list.push_back(tree);
 			}
 		}
@@ -236,7 +236,7 @@ struct MuxcoverWorker
 		int sum = 0;
 		for (auto bit : pool<SigBit>(bits.begin(), bits.end())) {
 			int cost = tree.newmuxes.at(bit).cost;
-			log_debug("        Best cost for %s: %d\n", log_signal(bit), cost);
+			log_debug("        Best cost for %s: %d\n", log_signal(bit).c_str(), cost);
 			sum += cost;
 		}
 		return sum;
@@ -273,12 +273,12 @@ struct MuxcoverWorker
 			mux.selects.push_back(S1);
 
 			find_best_covers(tree, mux.inputs);
-			log_debug("        Decode cost for mux2 at %s: %d\n", log_signal(bit), mux.cost);
+			log_debug("        Decode cost for mux2 at %s: %d\n", log_signal(bit).c_str(), mux.cost);
 
 			mux.cost += cost_mux2;
 			mux.cost += sum_best_covers(tree, mux.inputs);
 
-			log_debug("      Cost of mux2 at %s: %d\n", log_signal(bit), mux.cost);
+			log_debug("      Cost of mux2 at %s: %d\n", log_signal(bit).c_str(), mux.cost);
 
 			best_mux = mux;
 		}
@@ -315,12 +315,12 @@ struct MuxcoverWorker
 				mux.selects.push_back(T1);
 
 				find_best_covers(tree, mux.inputs);
-				log_debug("        Decode cost for mux4 at %s: %d\n", log_signal(bit), mux.cost);
+				log_debug("        Decode cost for mux4 at %s: %d\n", log_signal(bit).c_str(), mux.cost);
 
 				mux.cost += cost_mux4;
 				mux.cost += sum_best_covers(tree, mux.inputs);
 
-				log_debug("      Cost of mux4 at %s: %d\n", log_signal(bit), mux.cost);
+				log_debug("      Cost of mux4 at %s: %d\n", log_signal(bit).c_str(), mux.cost);
 
 				if (best_mux.cost >= mux.cost)
 					best_mux = mux;
@@ -380,12 +380,12 @@ struct MuxcoverWorker
 				mux.selects.push_back(U1);
 
 				find_best_covers(tree, mux.inputs);
-				log_debug("        Decode cost for mux8 at %s: %d\n", log_signal(bit), mux.cost);
+				log_debug("        Decode cost for mux8 at %s: %d\n", log_signal(bit).c_str(), mux.cost);
 
 				mux.cost += cost_mux8;
 				mux.cost += sum_best_covers(tree, mux.inputs);
 
-				log_debug("      Cost of mux8 at %s: %d\n", log_signal(bit), mux.cost);
+				log_debug("      Cost of mux8 at %s: %d\n", log_signal(bit).c_str(), mux.cost);
 
 				if (best_mux.cost >= mux.cost)
 					best_mux = mux;
@@ -482,12 +482,12 @@ struct MuxcoverWorker
 				mux.selects.push_back(V1);
 
 				find_best_covers(tree, mux.inputs);
-				log_debug("        Decode cost for mux16 at %s: %d\n", log_signal(bit), mux.cost);
+				log_debug("        Decode cost for mux16 at %s: %d\n", log_signal(bit).c_str(), mux.cost);
 
 				mux.cost += cost_mux16;
 				mux.cost += sum_best_covers(tree, mux.inputs);
 
-				log_debug("      Cost of mux16 at %s: %d\n", log_signal(bit), mux.cost);
+				log_debug("      Cost of mux16 at %s: %d\n", log_signal(bit).c_str(), mux.cost);
 
 				if (best_mux.cost >= mux.cost)
 					best_mux = mux;
@@ -585,10 +585,10 @@ struct MuxcoverWorker
 	void treecover(tree_t &tree)
 	{
 		int count_muxes_by_type[4] = {0, 0, 0, 0};
-		log_debug("    Searching for best cover for tree at %s.\n", log_signal(tree.root));
+		log_debug("    Searching for best cover for tree at %s.\n", log_signal(tree.root).c_str());
 		find_best_cover(tree, tree.root);
 		implement_best_cover(tree, tree.root, count_muxes_by_type);
-		log("    Replaced tree at %s: %d MUX2, %d MUX4, %d MUX8, %d MUX16\n", log_signal(tree.root),
+		log("    Replaced tree at %s: %d MUX2, %d MUX4, %d MUX8, %d MUX16\n", log_signal(tree.root).c_str(),
 				count_muxes_by_type[0], count_muxes_by_type[1], count_muxes_by_type[2], count_muxes_by_type[3]);
 		for (auto &it : tree.muxes)
 			module->remove(it.second);

@@ -550,7 +550,7 @@ struct Index {
 			else if (bit == State::Sx)
 				return CFALSE;
 			else
-				log_error("Unhandled state %s\n", log_signal(bit));
+				log_error("Unhandled state %s\n", log_signal(bit).c_str());
 		}
 
 		int idx = cursor.bitwire_index(*this, bit);

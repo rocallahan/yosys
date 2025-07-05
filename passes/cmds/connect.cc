@@ -196,7 +196,7 @@ struct ConnectPass : public Pass {
 			} else {
 				SigSpec cur = module->cell(RTLIL::escape_id(port_cell))->getPort(RTLIL::escape_id(port_port));
 				if (sigmap(sig) != sigmap(cur)) {
-					log_cmd_error("Expected connection not present: expected %s, found %s.\n", log_signal(sig), log_signal(cur));
+					log_cmd_error("Expected connection not present: expected %s, found %s.\n", log_signal(sig).c_str(), log_signal(cur).c_str());
 				}
 			}
 		}

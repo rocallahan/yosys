@@ -37,19 +37,19 @@ struct TraceMonitor : public RTLIL::Monitor
 
 	void notify_connect(RTLIL::Cell *cell, const RTLIL::IdString &port, const RTLIL::SigSpec &old_sig, const RTLIL::SigSpec &sig) override
 	{
-		log("#TRACE# Cell connect: %s.%s.%s = %s (was: %s)\n", log_id(cell->module), log_id(cell), log_id(port), log_signal(sig), log_signal(old_sig));
+		log("#TRACE# Cell connect: %s.%s.%s = %s (was: %s)\n", log_id(cell->module), log_id(cell), log_id(port), log_signal(sig).c_str(), log_signal(old_sig).c_str());
 	}
 
 	void notify_connect(RTLIL::Module *module, const RTLIL::SigSig &sigsig) override
 	{
-		log("#TRACE# Connection in module %s: %s = %s\n", log_id(module), log_signal(sigsig.first), log_signal(sigsig.second));
+		log("#TRACE# Connection in module %s: %s = %s\n", log_id(module), log_signal(sigsig.first).c_str(), log_signal(sigsig.second).c_str());
 	}
 
 	void notify_connect(RTLIL::Module *module, const std::vector<RTLIL::SigSig> &sigsig_vec) override
 	{
 		log("#TRACE# New connections in module %s:\n", log_id(module));
 		for (auto &sigsig : sigsig_vec)
-			log("##    %s = %s\n", log_signal(sigsig.first), log_signal(sigsig.second));
+			log("##    %s = %s\n", log_signal(sigsig.first).c_str(), log_signal(sigsig.second).c_str());
 	}
 
 	void notify_blackout(RTLIL::Module *module) override

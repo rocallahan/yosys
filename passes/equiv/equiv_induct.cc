@@ -145,7 +145,7 @@ struct EquivInductWorker
 			SigBit bit_a = sigmap(cell->getPort(ID::A)).as_bit();
 			SigBit bit_b = sigmap(cell->getPort(ID::B)).as_bit();
 
-			log("  Trying to prove $equiv for %s:", log_signal(sigmap(cell->getPort(ID::Y))));
+			log("  Trying to prove $equiv for %s:", log_signal(sigmap(cell->getPort(ID::Y))).c_str());
 
 			int ez_a = satgen.importSigBit(bit_a, max_seq+1);
 			int ez_b = satgen.importSigBit(bit_b, max_seq+1);

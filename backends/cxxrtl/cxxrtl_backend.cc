@@ -251,7 +251,7 @@ CxxrtlPortType cxxrtl_port_type(RTLIL::Module *module, RTLIL::IdString port)
 	bool is_sync = output_wire->get_bool_attribute(ID(cxxrtl_sync));
 	if (is_comb && is_sync)
 		log_cmd_error("Port `%s.%s' is marked as both `cxxrtl_comb` and `cxxrtl_sync`.\n",
-		              log_id(module), log_signal(output_wire));
+		              log_id(module), log_signal(output_wire).c_str());
 	else if (is_comb)
 		return CxxrtlPortType::COMB;
 	else if (is_sync)
@@ -2950,7 +2950,7 @@ struct CxxrtlWorker {
 						RTLIL::Const edge_attr = wire->attributes[ID(cxxrtl_edge)];
 						if (!(edge_attr.flags & RTLIL::CONST_FLAG_STRING) || (int)edge_attr.decode_string().size() != GetSize(wire))
 							log_cmd_error("Attribute `cxxrtl_edge' of port `%s.%s' is not a string with one character per bit.\n",
-							              log_id(module), log_signal(wire));
+							              log_id(module), log_signal(wire).c_str());
 
 						std::string edges = wire->get_string_attribute(ID(cxxrtl_edge));
 						for (int i = 0; i < GetSize(wire); i++) {
@@ -2963,7 +2963,7 @@ struct CxxrtlWorker {
 								default:
 									log_cmd_error("Attribute `cxxrtl_edge' of port `%s.%s' contains specifiers "
 									              "other than '-', 'p', 'n', or 'a'.\n",
-										log_id(module), log_signal(wire));
+										log_id(module), log_signal(wire).c_str());
 							}
 						}
 					}
@@ -3388,9 +3388,9 @@ struct CxxrtlWorker {
 					default:                 type_str = "(invalid)";
 				}
 				if (wire_type.sig_subst.empty())
-					log_debug("  %s: %s\n", log_signal((RTLIL::Wire*)wire), type_str);
+					log_debug("  %s: %s\n", log_signal((RTLIL::Wire*)wire).c_str(), type_str);
 				else
-					log_debug("  %s: %s = %s\n", log_signal((RTLIL::Wire*)wire), type_str, log_signal(wire_type.sig_subst));
+					log_debug("  %s: %s = %s\n", log_signal((RTLIL::Wire*)wire).c_str(), type_str, log_signal(wire_type.sig_subst).c_str());
 			};
 			if (print_wire_types && !wire_types.empty()) {
 				log_debug("Wire types:\n");

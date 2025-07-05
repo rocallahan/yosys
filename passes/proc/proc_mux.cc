@@ -429,7 +429,7 @@ void proc_mux(RTLIL::Module *mod, RTLIL::Process *proc, bool ifxmode)
 		swcache.current_snippet = idx;
 		RTLIL::SigSpec sig = sigsnip.sigidx[idx];
 
-		log("%6d/%d: %s\n", ++cnt, GetSize(sigsnip.snippets), log_signal(sig));
+		log("%6d/%d: %s\n", ++cnt, GetSize(sigsnip.snippets), log_signal(sig).c_str());
 
 		RTLIL::SigSpec value = signal_to_mux_tree(mod, swcache, swpara, &proc->root_case, sig, RTLIL::SigSpec(RTLIL::State::Sx, sig.size()), ifxmode);
 		mod->connect(RTLIL::SigSig(sig, value));

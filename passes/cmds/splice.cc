@@ -123,7 +123,7 @@ struct SpliceWorker
 				continue;
 			}
 
-			log("  Failed to generate spliced signal %s.\n", log_signal(sig));
+			log("  Failed to generate spliced signal %s.\n", log_signal(sig).c_str());
 			spliced_signals_cache[sig] = sig;
 			return sig;
 		}
@@ -143,7 +143,7 @@ struct SpliceWorker
 
 		spliced_signals_cache[sig] = new_sig;
 
-		log("  Created spliced signal: %s -> %s\n", log_signal(sig), log_signal(new_sig));
+		log("  Created spliced signal: %s -> %s\n", log_signal(sig).c_str(), log_signal(new_sig).c_str());
 		return new_sig;
 	}
 

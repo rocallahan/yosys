@@ -84,7 +84,7 @@ struct QbfSolutionType {
 				if (anyconst_sigbits[rhs[i]]) {
 					auto pos = anyconst_sigbit_to_wire_sigbit.find(rhs[i]);
 					if (pos != anyconst_sigbit_to_wire_sigbit.end())
-						log_cmd_error("conflicting names for hole $anyconst sigbit %s\n", log_signal(rhs[i]));
+						log_cmd_error("conflicting names for hole $anyconst sigbit %s\n", log_signal(rhs[i]).c_str());
 					anyconst_sigbit_to_wire_sigbit[rhs[i]] = lhs[i];
 				}
 			}
@@ -112,7 +112,7 @@ struct QbfSolutionType {
 				log_assert(it != hole_loc_idx_to_sigbit.end());
 
 				RTLIL::SigBit hole_sigbit = it->second;
-				log("\t%s = 1'b%c\n", log_signal(hole_sigbit), hole_value[bit_idx]);
+				log("\t%s = 1'b%c\n", log_signal(hole_sigbit).c_str(), hole_value[bit_idx]);
 			}
 		}
 	}

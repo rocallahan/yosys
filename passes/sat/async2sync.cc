@@ -142,7 +142,7 @@ struct Async2syncPass : public Pass {
 
 						log("Replacing %s.%s (%s): SET=%s, CLR=%s, D=%s, Q=%s\n",
 								log_id(module), log_id(cell), log_id(cell->type),
-								log_signal(ff.sig_set), log_signal(ff.sig_clr), log_signal(ff.sig_d), log_signal(ff.sig_q));
+								log_signal(ff.sig_set).c_str(), log_signal(ff.sig_clr).c_str(), log_signal(ff.sig_d).c_str(), log_signal(ff.sig_q).c_str());
 
 						initvals.remove_init(ff.sig_q);
 
@@ -188,7 +188,7 @@ struct Async2syncPass : public Pass {
 
 						log("Replacing %s.%s (%s): ALOAD=%s, AD=%s, D=%s, Q=%s\n",
 								log_id(module), log_id(cell), log_id(cell->type),
-								log_signal(ff.sig_aload), log_signal(ff.sig_ad), log_signal(ff.sig_d), log_signal(ff.sig_q));
+								log_signal(ff.sig_aload).c_str(), log_signal(ff.sig_ad).c_str(), log_signal(ff.sig_d).c_str(), log_signal(ff.sig_q).c_str());
 
 						initvals.remove_init(ff.sig_q);
 
@@ -221,7 +221,7 @@ struct Async2syncPass : public Pass {
 
 						log("Replacing %s.%s (%s): ARST=%s, D=%s, Q=%s\n",
 								log_id(module), log_id(cell), log_id(cell->type),
-								log_signal(ff.sig_arst), log_signal(ff.sig_d), log_signal(ff.sig_q));
+								log_signal(ff.sig_arst).c_str(), log_signal(ff.sig_d).c_str(), log_signal(ff.sig_q).c_str());
 
 						initvals.remove_init(ff.sig_q);
 
@@ -255,7 +255,7 @@ struct Async2syncPass : public Pass {
 					// Latch.
 					log("Replacing %s.%s (%s): EN=%s, D=%s, Q=%s\n",
 							log_id(module), log_id(cell), log_id(cell->type),
-							log_signal(ff.sig_aload), log_signal(ff.sig_ad), log_signal(ff.sig_q));
+							log_signal(ff.sig_aload).c_str(), log_signal(ff.sig_ad).c_str(), log_signal(ff.sig_q).c_str());
 
 					initvals.remove_init(ff.sig_q);
 

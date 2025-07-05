@@ -30,7 +30,7 @@ PRIVATE_NAMESPACE_BEGIN
 static std::string netname(std::set<std::string> &conntypes_code, std::set<std::string> &celltypes_code, std::set<std::string> &constcells_code, RTLIL::SigSpec sig)
 {
 	if (!sig.is_fully_const() && !sig.is_wire())
-		log_error("Can't export composite or non-word-wide signal %s.\n", log_signal(sig));
+		log_error("Can't export composite or non-word-wide signal %s.\n", log_signal(sig).c_str());
 
 	conntypes_code.insert(stringf("conntype b%d %d 2 %d\n", sig.size(), sig.size(), sig.size()));
 

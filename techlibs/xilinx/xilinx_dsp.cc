@@ -447,7 +447,7 @@ void xilinx_dsp_pack(xilinx_dsp_pm &pm)
 			cell->setParam(ID(PREG), State::S1);
 		}
 
-		log("  clock: %s (%s)", log_signal(st.clock), "posedge");
+		log("  clock: %s (%s)", log_signal(st.clock).c_str(), "posedge");
 
 		if (st.ffA2) {
 			log(" ffA2:%s", log_id(st.ffA2));
@@ -630,7 +630,7 @@ void xilinx_dsp48a_pack(xilinx_dsp48a_pm &pm)
 			cell->setParam(ID(PREG), State::S1);
 		}
 
-		log("  clock: %s (%s)", log_signal(st.clock), "posedge");
+		log("  clock: %s (%s)", log_signal(st.clock).c_str(), "posedge");
 
 		if (st.ffA0)
 			log(" ffA0:%s", log_id(st.ffA0));
@@ -715,7 +715,7 @@ void xilinx_dsp_packC(xilinx_dsp_CREG_pm &pm)
 			cell->setParam(ID(CREG), 1);
 		}
 
-		log("  clock: %s (%s)", log_signal(st.clock), "posedge");
+		log("  clock: %s (%s)", log_signal(st.clock).c_str(), "posedge");
 
 		if (st.ffC)
 			log(" ffC:%s", log_id(st.ffC));

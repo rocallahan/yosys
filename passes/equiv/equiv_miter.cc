@@ -224,7 +224,7 @@ struct EquivMiterWorker
 					miter_module->Eq(NEW_ID, c->getPort(ID::A), c->getPort(ID::B));
 
 			if (mode_cmp) {
-				string cmp_name = stringf("\\cmp%s", log_signal(c->getPort(ID::Y)));
+				string cmp_name = stringf("\\cmp%s", log_signal(c->getPort(ID::Y)).c_str());
 				for (int i = 1; i < GetSize(cmp_name); i++)
 					if (cmp_name[i] == '\\')
 						cmp_name[i] = '_';

@@ -312,7 +312,7 @@ struct BugpointPass : public Pass {
 						{
 							if (index++ == seed)
 							{
-								log_header(design, "Trying to remove assign %s %s in %s.%s.\n", log_signal(it->first), log_signal(it->second), log_id(mod), log_id(pr.first));
+								log_header(design, "Trying to remove assign %s %s in %s.%s.\n", log_signal(it->first).c_str(), log_signal(it->second).c_str(), log_id(mod), log_id(pr.first));
 								cs->actions.erase(it);
 								return design_copy;
 							}
@@ -338,7 +338,7 @@ struct BugpointPass : public Pass {
 						{
 							if (index++ == seed)
 							{
-								log_header(design, "Trying to remove sync %s update %s %s in %s.%s.\n", log_signal(sy->signal), log_signal(it->first), log_signal(it->second), log_id(mod), log_id(pr.first));
+								log_header(design, "Trying to remove sync %s update %s %s in %s.%s.\n", log_signal(sy->signal).c_str(), log_signal(it->first).c_str(), log_signal(it->second).c_str(), log_id(mod), log_id(pr.first));
 								sy->actions.erase(it);
 								return design_copy;
 							}
@@ -348,7 +348,7 @@ struct BugpointPass : public Pass {
 						{
 							if (index++ == seed)
 							{
-								log_header(design, "Trying to remove sync %s memwr %s %s %s %s in %s.%s.\n", log_signal(sy->signal), log_id(it->memid), log_signal(it->address), log_signal(it->data), log_signal(it->enable), log_id(mod), log_id(pr.first));
+								log_header(design, "Trying to remove sync %s memwr %s %s %s %s in %s.%s.\n", log_signal(sy->signal).c_str(), log_id(it->memid), log_signal(it->address).c_str(), log_signal(it->data).c_str(), log_signal(it->enable).c_str(), log_id(mod), log_id(pr.first));
 								sy->mem_write_actions.erase(it);
 								// Remove the bit for removed action from other actions' priority masks.
 								for (auto it2 = sy->mem_write_actions.begin(); it2 != sy->mem_write_actions.end(); ++it2) {

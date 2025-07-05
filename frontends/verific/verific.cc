@@ -2023,16 +2023,16 @@ void VerificImporter::import_netlist(RTLIL::Design *design, Netlist *nl, std::ma
 			if (verific_verbose) {
 				for (unsigned i = 0; i < width; i++) {
 					log("    NEX with A=%s, B=0, Y=%s.\n",
-							log_signal(sig_d[i]), log_signal(sig_dx[i]));
+							log_signal(sig_d[i]).c_str(), log_signal(sig_dx[i]).c_str());
 					log("    EQX with A=%s, B=1, Y=%s.\n",
-							log_signal(sig_d[i]), log_signal(sig_dx[i + width]));
+							log_signal(sig_d[i]).c_str(), log_signal(sig_dx[i + width]).c_str());
 				}
 				log("    %sedge FF with D=%s, Q=%s, C=%s.\n", clocking.posedge ? "pos" : "neg",
-						log_signal(sig_dx), log_signal(sig_qx), log_signal(clocking.clock_sig));
+						log_signal(sig_dx).c_str(), log_signal(sig_qx).c_str(), log_signal(clocking.clock_sig).c_str());
 				log("    XNOR with A=%s, B=%s, Y=%s.\n",
-						log_signal(sig_dx), log_signal(sig_qx), log_signal(sig_ox));
+						log_signal(sig_dx).c_str(), log_signal(sig_qx).c_str(), log_signal(sig_ox).c_str());
 				log("    AND with A=%s, B=%s, Y=%s.\n",
-						log_signal(sig_ox.extract(0, width)), log_signal(sig_ox.extract(width, width)), log_signal(sig_o));
+						log_signal(sig_ox.extract(0, width)).c_str(), log_signal(sig_ox.extract(width, width)).c_str(), log_signal(sig_o).c_str());
 			}
 
 			for (unsigned i = 0; i < width; i++) {
@@ -2065,13 +2065,13 @@ void VerificImporter::import_netlist(RTLIL::Design *design, Netlist *nl, std::ma
 
 			if (verific_verbose) {
 				log("    NEX with A=%s, B=0, Y=%s.\n",
-						log_signal(sig_d), log_signal(sig_dx[0]));
+						log_signal(sig_d).c_str(), log_signal(sig_dx[0]).c_str());
 				log("    EQX with A=%s, B=1, Y=%s.\n",
-						log_signal(sig_d), log_signal(sig_dx[1]));
+						log_signal(sig_d).c_str(), log_signal(sig_dx[1]).c_str());
 				log("    %sedge FF with D=%s, Q=%s, C=%s.\n", clocking.posedge ? "pos" : "neg",
-						log_signal(sig_dx), log_signal(sig_qx), log_signal(clocking.clock_sig));
+						log_signal(sig_dx).c_str(), log_signal(sig_qx).c_str(), log_signal(clocking.clock_sig).c_str());
 				log("    EQ with A=%s, B=%s, Y=%s.\n",
-						log_signal(sig_dx), log_signal(sig_qx), log_signal(sig_o));
+						log_signal(sig_dx).c_str(), log_signal(sig_qx).c_str(), log_signal(sig_o).c_str());
 			}
 
 			module->addNex(new_verific_id(inst), sig_d, State::S0, sig_dx[0]);
@@ -2095,7 +2095,7 @@ void VerificImporter::import_netlist(RTLIL::Design *design, Netlist *nl, std::ma
 
 			if (verific_verbose)
 				log("    %sedge FF with D=%s, Q=%s, C=%s.\n", clocking.posedge ? "pos" : "neg",
-						log_signal(sig_d), log_signal(sig_q), log_signal(clocking.clock_sig));
+						log_signal(sig_d).c_str(), log_signal(sig_q).c_str(), log_signal(clocking.clock_sig).c_str());
 
 			past_ffs.insert(clocking.addDff(new_verific_id(inst), sig_d, sig_q));
 
@@ -2116,11 +2116,11 @@ void VerificImporter::import_netlist(RTLIL::Design *design, Netlist *nl, std::ma
 
 			if (verific_verbose) {
 				log("    EQX with A=%s, B=%d, Y=%s.\n",
-						log_signal(sig_d), inst->Type() == PRIM_SVA_ROSE, log_signal(sig_d_no_x));
+						log_signal(sig_d).c_str(), inst->Type() == PRIM_SVA_ROSE, log_signal(sig_d_no_x).c_str());
 				log("    %sedge FF with D=%s, Q=%s, C=%s.\n", clocking.posedge ? "pos" : "neg",
-						log_signal(sig_d_no_x), log_signal(sig_q), log_signal(clocking.clock_sig));
+						log_signal(sig_d_no_x).c_str(), log_signal(sig_q).c_str(), log_signal(clocking.clock_sig).c_str());
 				log("    EQ with A={%s, %s}, B={0, 1}, Y=%s.\n",
-						log_signal(sig_q), log_signal(sig_d_no_x), log_signal(sig_o));
+						log_signal(sig_q).c_str(), log_signal(sig_d_no_x).c_str(), log_signal(sig_o).c_str());
 			}
 
 			module->addEqx(new_verific_id(inst), sig_d, inst->Type() == PRIM_SVA_ROSE ? State::S1 : State::S0, sig_d_no_x);
@@ -2157,7 +2157,7 @@ void VerificImporter::import_netlist(RTLIL::Design *design, Netlist *nl, std::ma
 			SigBit cond = net_map_at(inst->GetInput());
 
 			if (verific_verbose)
-				log("    assert condition %s.\n", log_signal(cond));
+				log("    assert condition %s.\n", log_signal(cond).c_str());
 
 			Cell *cell = module->addAssert(new_verific_id(inst), cond, State::S1);
 			import_attributes(cell->attributes, inst);
@@ -2243,7 +2243,7 @@ void VerificImporter::import_netlist(RTLIL::Design *design, Netlist *nl, std::ma
 
 		for (auto &it : cell_port_conns) {
 			if (verific_verbose)
-				log("      .%s(%s)\n", log_id(it.first), log_signal(it.second));
+				log("      .%s(%s)\n", log_id(it.first), log_signal(it.second).c_str());
 			cell->setPort(it.first, it.second);
 		}
 	}

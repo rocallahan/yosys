@@ -490,7 +490,7 @@ struct FirrtlWorker
 				const SigSpec *sinkSig = nullptr;
 				switch (dir) {
 					case FD_INOUT:
-						log_warning("Instance port connection %s.%s is INOUT; treating as OUT\n", cell_type.c_str(), log_signal(it->second));
+						log_warning("Instance port connection %s.%s is INOUT; treating as OUT\n", cell_type.c_str(), log_signal(it->second).c_str());
 						YS_FALLTHROUGH
 					case FD_OUT:
 						sourceExpr = firstName;
@@ -498,14 +498,14 @@ struct FirrtlWorker
 						sinkSig = &secondSig;
 						break;
 					case FD_NODIRECTION:
-						log_warning("Instance port connection %s.%s is NODIRECTION; treating as IN\n", cell_type.c_str(), log_signal(it->second));
+						log_warning("Instance port connection %s.%s is NODIRECTION; treating as IN\n", cell_type.c_str(), log_signal(it->second).c_str());
 						YS_FALLTHROUGH
 					case FD_IN:
 						sourceExpr = secondExpr;
 						sinkExpr = firstName;
 						break;
 					default:
-						log_error("Instance port %s.%s unrecognized connection direction 0x%x !\n", cell_type.c_str(), log_signal(it->second), dir);
+						log_error("Instance port %s.%s unrecognized connection direction 0x%x !\n", cell_type.c_str(), log_signal(it->second).c_str(), dir);
 						break;
 				}
 				// Check for subfield assignment.

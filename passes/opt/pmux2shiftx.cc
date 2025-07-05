@@ -88,7 +88,7 @@ struct OnehotDatabase
 	void query_worker(const SigSpec &sig, bool &retval, bool &cache, int indent)
 	{
 		if (verbose)
-			log("%*s %s\n", indent, "", log_signal(sig));
+			log("%*s %s\n", indent, "", log_signal(sig).c_str());
 		log_assert(retval);
 
 		if (recursion_guard.count(sig)) {
@@ -170,7 +170,7 @@ struct OnehotDatabase
 		bool cache = true;
 
 		if (verbose)
-			log("** ONEHOT QUERY START (%s)\n", log_signal(sig));
+			log("** ONEHOT QUERY START (%s)\n", log_signal(sig).c_str());
 
 		if (!initialized)
 			initialize();
@@ -443,13 +443,13 @@ struct Pmux2ShiftxPass : public Pass {
 						log("  data width: %d (next power-of-2 = %d, log2 = %d)\n", width, extwidth, width_bits);
 					}
 
-					log("  checking ctrl signal %s\n", log_signal(sig));
+					log("  checking ctrl signal %s\n", log_signal(sig).c_str());
 
 					auto print_choices = [&]() {
 						log("    table of choices:\n");
 						for (auto &it : choices)
-							log("    %3d: %s: %s\n", it.second, log_signal(it.first),
-									log_signal(B.extract(it.second*width, width)));
+							log("    %3d: %s: %s\n", it.second, log_signal(it.first).c_str(),
+									log_signal(B.extract(it.second*width, width)).c_str());
 					};
 
 					if (verbose)
@@ -496,7 +496,7 @@ struct Pmux2ShiftxPass : public Pass {
 								}
 
 								SigBit new_ctrl = sig[index];
-								log("    %3d: new crtl signal is %s.\n", it.second, log_signal(new_ctrl));
+								log("    %3d: new crtl signal is %s.\n", it.second, log_signal(new_ctrl).c_str());
 								updated_S[it.second] = new_ctrl;
 							}
 						}
@@ -600,8 +600,8 @@ struct Pmux2ShiftxPass : public Pass {
 					for (int i = 0; i < GetSize(sig); i++)
 						perm_sig[i] = sig[perm_new_from_old[i]];
 
-					log("    best permutation: %s\n", log_signal(perm_sig));
-					log("    best xor mask: %s\n", log_signal(perm_xormask));
+					log("    best permutation: %s\n", log_signal(perm_sig).c_str());
+					log("    best xor mask: %s\n", log_signal(perm_xormask).c_str());
 
 					// permutated choices
 					int min_choice = 1 << 30;
@@ -624,8 +624,8 @@ struct Pmux2ShiftxPass : public Pass {
 						min_choice = std::min(min_choice, new_c.as_int());
 						max_choice = std::max(max_choice, new_c.as_int());
 
-						log("    %3d: %s -> %s -> %s: %s\n", it.second, log_signal(old_c), log_signal(new_c_before_xor),
-								log_signal(new_c), log_signal(B.extract(it.second*width, width)));
+						log("    %3d: %s -> %s -> %s: %s\n", it.second, log_signal(old_c).c_str(), log_signal(new_c_before_xor).c_str(),
+								log_signal(new_c).c_str(), log_signal(B.extract(it.second*width, width)).c_str());
 					}
 
 					int range_density = 100*GetSize(choices) / (max_choice-min_choice+1);
@@ -659,7 +659,7 @@ struct Pmux2ShiftxPass : public Pass {
 					if (!norange && absolute_density < min_density && range_density >= min_density)
 					{
 						offset = Const(min_choice, GetSize(sig));
-						log("    offset: %s\n", log_signal(offset));
+						log("    offset: %s\n", log_signal(offset).c_str());
 
 						min_choice -= offset.as_int();
 						max_choice -= offset.as_int();
@@ -797,11 +797,11 @@ struct OnehotPass : public Pass {
 					continue;
 
 				if (verbose)
-					log("Checking $eq(%s, %s) cell %s/%s.\n", log_signal(A), log_signal(B), log_id(module), log_id(cell));
+					log("Checking $eq(%s, %s) cell %s/%s.\n", log_signal(A).c_str(), log_signal(B).c_str(), log_id(module), log_id(cell));
 
 				if (!onehot_db.query(A)) {
 					if (verbose)
-						log("  onehot driver test on %s failed.\n", log_signal(A));
+						log("  onehot driver test on %s failed.\n", log_signal(A).c_str());
 					continue;
 				}
 
@@ -829,16 +829,16 @@ struct OnehotPass : public Pass {
 					if (verbose)
 						log("  replacing with constant 0 driver.\n");
 					else
-						log("Replacing one-hot $eq(%s, %s) cell %s/%s with constant 0 driver.\n", log_signal(A), log_signal(B), log_id(module), log_id(cell));
+						log("Replacing one-hot $eq(%s, %s) cell %s/%s with constant 0 driver.\n", log_signal(A).c_str(), log_signal(B).c_str(), log_id(module), log_id(cell));
 					module->connect(Y, SigSpec(1, GetSize(Y)));
 				}
 				else
 				{
 					SigSpec sig = A[index];
 					if (verbose)
-						log("  replacing with signal %s.\n", log_signal(sig));
+						log("  replacing with signal %s.\n", log_signal(sig).c_str());
 					else
-						log("Replacing one-hot $eq(%s, %s) cell %s/%s with signal %s.\n",log_signal(A), log_signal(B), log_id(module), log_id(cell), log_signal(sig));
+						log("Replacing one-hot $eq(%s, %s) cell %s/%s with signal %s.\n", log_signal(A).c_str(), log_signal(B).c_str(), log_id(module), log_id(cell), log_signal(sig).c_str());
 					sig.extend_u0(GetSize(Y));
 					module->connect(Y, sig);
 				}

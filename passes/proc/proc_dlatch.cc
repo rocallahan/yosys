@@ -397,14 +397,14 @@ void proc_dlatch(proc_dlatch_db_t &db, RTLIL::Process *proc)
 		SigSpec lhs = chunk, rhs = nolatches_bits.second.extract(offset, chunk.width);
 		if (proc->get_bool_attribute(ID::always_latch))
 			log_error("No latch inferred for signal `%s.%s' from always_latch process `%s.%s'.\n",
-					db.module->name.c_str(), log_signal(lhs), db.module->name.c_str(), proc->name.c_str());
+					db.module->name.c_str(), log_signal(lhs).c_str(), db.module->name.c_str(), proc->name.c_str());
 		else
 			log("No latch inferred for signal `%s.%s' from process `%s.%s'.\n",
-					db.module->name.c_str(), log_signal(lhs), db.module->name.c_str(), proc->name.c_str());
+					db.module->name.c_str(), log_signal(lhs).c_str(), db.module->name.c_str(), proc->name.c_str());
 		for (auto &bit : lhs) {
 			State val = db.initvals(bit);
 			if (db.initvals(bit) != State::Sx) {
-				log("Removing init bit %s for non-memory siginal `%s.%s` in process `%s.%s`.\n", log_signal(val), db.module->name.c_str(), log_signal(bit), db.module->name.c_str(), proc->name.c_str());
+				log("Removing init bit %s for non-memory siginal `%s.%s` in process `%s.%s`.\n", log_signal(val).c_str(), db.module->name.c_str(), log_signal(bit).c_str(), db.module->name.c_str(), proc->name.c_str());
 			}
 			db.initvals.remove_init(bit);
 		}
@@ -435,10 +435,10 @@ void proc_dlatch(proc_dlatch_db_t &db, RTLIL::Process *proc)
 
 			if (proc->get_bool_attribute(ID::always_comb))
 				log_error("Latch inferred for signal `%s.%s' from always_comb process `%s.%s'.\n",
-						db.module->name.c_str(), log_signal(lhs), db.module->name.c_str(), proc->name.c_str());
+						db.module->name.c_str(), log_signal(lhs).c_str(), db.module->name.c_str(), proc->name.c_str());
 			else
 				log("Latch inferred for signal `%s.%s' from process `%s.%s': %s\n",
-						db.module->name.c_str(), log_signal(lhs), db.module->name.c_str(), proc->name.c_str(), log_id(cell));
+						db.module->name.c_str(), log_signal(lhs).c_str(), db.module->name.c_str(), proc->name.c_str(), log_id(cell));
 		}
 
 		offset += width;

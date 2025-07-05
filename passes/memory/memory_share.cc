@@ -158,7 +158,7 @@ struct MemoryShareWorker
 					continue;
 				// At this point we are committed to the merge.
 				{
-					log("  Merging ports %d, %d (address %s).\n", i, j, log_signal(port1.addr));
+					log("  Merging ports %d, %d (address %s).\n", i, j, log_signal(port1.addr).c_str());
 					port1.addr = addr1;
 					port2.addr = addr2;
 					mem.prepare_rd_merge(i, j, &initvals);
@@ -251,7 +251,7 @@ struct MemoryShareWorker
 					if (!addr2.extract(0, wide_log2).is_fully_const())
 						continue;
 				}
-				log("  Merging ports %d, %d (address %s).\n", i, j, log_signal(addr1));
+				log("  Merging ports %d, %d (address %s).\n", i, j, log_signal(addr1).c_str());
 				port1.addr = addr1;
 				port2.addr = addr2;
 				mem.prepare_wr_merge(i, j, &initvals);
@@ -373,7 +373,7 @@ struct MemoryShareWorker
 			if (!some_port.clk_enable) {
 				log("  Checking unclocked group, width %d: ports %s.\n", mem.width << some_port.wide_log2, ports.c_str());
 			} else {
-				log("  Checking group clocked with %sedge %s, width %d: ports %s.\n", some_port.clk_polarity ? "pos" : "neg", log_signal(some_port.clk), mem.width << some_port.wide_log2, ports.c_str());
+				log("  Checking group clocked with %sedge %s, width %d: ports %s.\n", some_port.clk_polarity ? "pos" : "neg", log_signal(some_port.clk).c_str(), mem.width << some_port.wide_log2, ports.c_str());
 			}
 
 			// Okay, time to actually run the SAT solver.

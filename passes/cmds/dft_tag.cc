@@ -97,7 +97,7 @@ struct DftTagWorker {
 		}
 
 		for (auto cell : overwrite_cells) {
-			log_debug("Applying $overwrite_tag %s for signal %s\n", log_id(cell->name), log_signal(cell->getPort(ID::A)));
+			log_debug("Applying $overwrite_tag %s for signal %s\n", log_id(cell->name), log_signal(cell->getPort(ID::A)).c_str());
 			SigSpec orig_signal = cell->getPort(ID::A);
 			SigSpec interposed_signal = divert_users(orig_signal);
 			auto *set_tag_cell = module->addSetTag(NEW_ID, cell->getParam(ID::TAG).decode_string(), orig_signal, cell->getPort(ID::SET), cell->getPort(ID::CLR), interposed_signal);
@@ -121,7 +121,7 @@ struct DftTagWorker {
 		SigSpec signal_mapped = sigmap(signal);
 		signal_mapped.sort_and_unify();
 		if (GetSize(signal_mapped) < GetSize(signal))
-			log_warning("Detected $overwrite_tag on signal %s which contains repeated bits, this can result in unexpected behavior.\n", log_signal(signal));
+			log_warning("Detected $overwrite_tag on signal %s which contains repeated bits, this can result in unexpected behavior.\n", log_signal(signal).c_str());
 		SigSpec new_wire = module->addWire(NEW_ID, GetSize(signal));
 		for (int i = 0; i < GetSize(new_wire); ++i)
 			divert_users(signal[i], new_wire[i]);

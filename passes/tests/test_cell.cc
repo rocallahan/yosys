@@ -436,7 +436,7 @@ static void run_edges_test(RTLIL::Design *design, bool verbose)
 		SigBit inbit = std::get<0>(input_db[i]);
 
 		if (verbose)
-			log("  Testing input signal %s:\n", log_signal(inbit));
+			log("  Testing input signal %s:\n", log_signal(inbit).c_str());
 
 		vector<int> xinbits, yinbits;
 		for (int k = 0; k < GetSize(input_db); k++)
@@ -460,7 +460,7 @@ static void run_edges_test(RTLIL::Design *design, bool verbose)
 
 			if (verbose) {
 				bool is_ref_edge = edges_db.db.count(inbit) && edges_db.db.at(inbit).count(outbit);
-				log("    %c %s %s\n", is_edge ? 'x' : 'o', log_signal(outbit), is_edge == is_ref_edge ? "OK" : "ERROR");
+				log("    %c %s %s\n", is_edge ? 'x' : 'o', log_signal(outbit).c_str(), is_edge == is_ref_edge ? "OK" : "ERROR");
 			}
 		}
 	}
@@ -555,7 +555,7 @@ static void run_eval_test(RTLIL::Design *design, bool verbose, bool nosat, std::
 			}
 
 			if (verbose)
-				log("%s: %s\n", log_id(gold_wire), log_signal(in_value));
+				log("%s: %s\n", log_id(gold_wire), log_signal(in_value).c_str());
 
 			in_sig.append(gold_wire);
 			in_val.append(in_value);
@@ -567,7 +567,7 @@ static void run_eval_test(RTLIL::Design *design, bool verbose, bool nosat, std::
 				vlog_file << stringf("      %s = 'b%s;\n", log_id(gold_wire), in_value.as_string().c_str());
 				if (!vlog_pattern_info.empty())
 					vlog_pattern_info += " ";
-				vlog_pattern_info += stringf("%s=%s", log_id(gold_wire), log_signal(in_value));
+				vlog_pattern_info += stringf("%s=%s", log_id(gold_wire), log_signal(in_value).c_str());
 			}
 		}
 
@@ -607,10 +607,10 @@ static void run_eval_test(RTLIL::Design *design, bool verbose, bool nosat, std::
 			}
 
 			if (gold_gate_mismatch)
-				log_error("Mismatch in output %s: gold:%s != gate:%s\n", log_id(gate_wire), log_signal(gold_outval), log_signal(gate_outval));
+				log_error("Mismatch in output %s: gold:%s != gate:%s\n", log_id(gate_wire), log_signal(gold_outval).c_str(), log_signal(gate_outval).c_str());
 
 			if (verbose)
-				log("%s: %s\n", log_id(gold_wire), log_signal(gold_outval));
+				log("%s: %s\n", log_id(gold_wire), log_signal(gold_outval).c_str());
 
 			out_sig.append(gold_wire);
 			out_val.append(gold_outval);

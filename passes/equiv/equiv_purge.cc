@@ -37,7 +37,7 @@ struct EquivPurgeWorker
 			Wire *wire = sig.as_wire();
 			if (wire->name.isPublic()) {
 				if (!wire->port_output) {
-					log("  Module output: %s (%s)\n", log_signal(wire), log_id(cellname));
+					log("  Module output: %s (%s)\n", log_signal(wire).c_str(), log_id(cellname));
 					wire->port_output = true;
 				}
 				return wire;
@@ -53,7 +53,7 @@ struct EquivPurgeWorker
 			Wire *wire = module->addWire(name, GetSize(sig));
 			wire->port_output = true;
 			module->connect(wire, sig);
-			log("  Module output: %s (%s)\n", log_signal(wire), log_id(cellname));
+			log("  Module output: %s (%s)\n", log_signal(wire).c_str(), log_id(cellname));
 			return wire;
 		}
 	}
@@ -64,7 +64,7 @@ struct EquivPurgeWorker
 			Wire *wire = sig.as_wire();
 			if (wire->name.isPublic()) {
 				if (!wire->port_output) {
-					log("  Module input: %s\n", log_signal(wire));
+					log("  Module input: %s\n", log_signal(wire).c_str());
 					wire->port_input = true;
 				}
 				return module->addWire(NEW_ID, GetSize(sig));
@@ -80,7 +80,7 @@ struct EquivPurgeWorker
 			Wire *wire = module->addWire(name, GetSize(sig));
 			wire->port_input = true;
 			module->connect(sig, wire);
-			log("  Module input: %s (%s)\n", log_signal(wire), log_signal(sig));
+			log("  Module input: %s (%s)\n", log_signal(wire).c_str(), log_signal(sig).c_str());
 			return module->addWire(NEW_ID, GetSize(sig));
 		}
 	}

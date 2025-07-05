@@ -146,7 +146,7 @@ void rmunused_module_cells(Module *module, bool verbose)
 				if (bit.wire == nullptr && ct_all.cell_known(cell->type))
 					driver_driver_logs[raw_sigmap(raw_bit)].push_back(stringf("Driver-driver conflict "
 							"for %s between cell %s.%s and constant %s in %s: Resolved using constant.",
-							log_signal(raw_bit), log_id(cell), log_id(it2.first), log_signal(bit), log_id(module)));
+							log_signal(raw_bit).c_str(), log_id(cell), log_id(it2.first), log_signal(bit).c_str(), log_id(module)));
 				if (bit.wire != nullptr)
 					wire2driver[bit].insert(cell);
 			}
@@ -574,7 +574,7 @@ bool rmunused_module_init(RTLIL::Module *module, bool verbose)
 					goto next_wire;
 
 				if (mapped_wire_bit != init[i]) {
-					log_warning("Initial value conflict for %s resolving to %s but with init %s.\n", log_signal(wire_bit), log_signal(mapped_wire_bit), log_signal(init[i]));
+					log_warning("Initial value conflict for %s resolving to %s but with init %s.\n", log_signal(wire_bit).c_str(), log_signal(mapped_wire_bit).c_str(), log_signal(init[i]).c_str());
 					goto next_wire;
 				}
 			}
@@ -612,7 +612,7 @@ void rmunused_module(RTLIL::Module *module, bool purge_mode, bool verbose, bool 
 	for (auto cell : delcells) {
 		if (verbose)
 			log_debug("  removing buffer cell `%s': %s = %s\n", cell->name.c_str(),
-					log_signal(cell->getPort(ID::Y)), log_signal(cell->getPort(ID::A)));
+					log_signal(cell->getPort(ID::Y)).c_str(), log_signal(cell->getPort(ID::A)).c_str());
 		module->remove(cell);
 	}
 	if (!delcells.empty())

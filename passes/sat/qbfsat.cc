@@ -121,7 +121,7 @@ void specialize_from_file(RTLIL::Module *module, const std::string &file) {
 	for (auto &it : hole_assignments) {
 		RTLIL::SigSpec lhs(it.first);
 		RTLIL::SigSpec rhs(it.second);
-		log("Specializing %s from file with %s = %d.\n", module->name.c_str(), log_signal(it.first), it.second == RTLIL::State::S1? 1 : 0);
+		log("Specializing %s from file with %s = %d.\n", module->name.c_str(), log_signal(it.first).c_str(), it.second == RTLIL::State::S1? 1 : 0);
 		module->connect(lhs, rhs);
 	}
 }
@@ -150,7 +150,7 @@ void specialize(RTLIL::Module *module, const QbfSolutionType &sol, bool quiet = 
 			RTLIL::SigSpec lhs(hole_sigbit.wire, hole_sigbit.offset, 1);
 			RTLIL::State hole_bit_val = hole_value[bit_idx] == '1'? RTLIL::State::S1 : RTLIL::State::S0;
 			if (!quiet)
-				log("Specializing %s with %s = %d.\n", module->name.c_str(), log_signal(hole_sigbit), hole_bit_val == RTLIL::State::S0? 0 : 1)
+				log("Specializing %s with %s = %d.\n", module->name.c_str(), log_signal(hole_sigbit).c_str(), hole_bit_val == RTLIL::State::S0? 0 : 1)
 ;
 			module->connect(lhs, hole_bit_val);
 		}
@@ -332,7 +332,7 @@ QbfSolutionType qbf_solve(RTLIL::Module *mod, const QbfSolveOptions &opt) {
 				ConstEval ce(module);
 				value = wire;
 				if (!ce.eval(value, undef))
-					log_cmd_error("Failed to evaluate signal %s: Missing value for %s.\n", log_signal(wire), log_signal(undef));
+					log_cmd_error("Failed to evaluate signal %s: Missing value for %s.\n", log_signal(wire).c_str(), log_signal(undef).c_str());
 				log_assert(value.is_fully_const());
 				success = value.as_const().as_int();
 				best_soln = ret;

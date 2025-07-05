@@ -914,7 +914,7 @@ std::string log_signal(DriveChunk const &chunk)
 			for (auto const &single : chunk.multiple().multiple()) {
 				str += sep;
 				sep = ", ";
-				str += log_signal(single);
+				str += log_signal(single).c_str();
 			}
 			str += ">";
 			return str;

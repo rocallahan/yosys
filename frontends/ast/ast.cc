@@ -1801,14 +1801,14 @@ std::string AstModule::derive_common(RTLIL::Design *design, const dict<RTLIL::Id
 		auto it = parameters.find(child->str);
 		if (it != parameters.end()) {
 			if (!quiet)
-				log("Parameter %s = %s\n", child->str.c_str(), log_signal(it->second));
+				log("Parameter %s = %s\n", child->str.c_str(), log_signal(it->second).c_str());
 			named_parameters.emplace_back(child->str, it->second);
 			continue;
 		}
 		it = parameters.find(stringf("$%d", para_counter));
 		if (it != parameters.end()) {
 			if (!quiet)
-				log("Parameter %d (%s) = %s\n", para_counter, child->str.c_str(), log_signal(it->second));
+				log("Parameter %d (%s) = %s\n", para_counter, child->str.c_str(), log_signal(it->second).c_str());
 			named_parameters.emplace_back(child->str, it->second);
 			continue;
 		}
@@ -1840,13 +1840,13 @@ std::string AstModule::derive_common(RTLIL::Design *design, const dict<RTLIL::Id
 		auto it = parameters.find(child->str);
 		if (it != parameters.end()) {
 			if (!quiet)
-				log("Parameter %s = %s\n", child->str.c_str(), log_signal(it->second));
+				log("Parameter %s = %s\n", child->str.c_str(), log_signal(it->second).c_str());
 			goto rewrite_parameter;
 		}
 		it = parameters.find(stringf("$%d", para_counter));
 		if (it != parameters.end()) {
 			if (!quiet)
-				log("Parameter %d (%s) = %s\n", para_counter, child->str.c_str(), log_signal(it->second));
+				log("Parameter %d (%s) = %s\n", para_counter, child->str.c_str(), log_signal(it->second).c_str());
 			goto rewrite_parameter;
 		}
 		continue;

@@ -77,7 +77,7 @@ struct EquivStatusPass : public Pass {
 				log("  Equivalence successfully proven!\n");
 			} else {
 				for (auto cell : unproven_equiv_cells)
-					log("  Unproven $equiv %s: %s %s\n", log_id(cell), log_signal(cell->getPort(ID::A)), log_signal(cell->getPort(ID::B)));
+					log("  Unproven $equiv %s: %s %s\n", log_id(cell), log_signal(cell->getPort(ID::A)).c_str(), log_signal(cell->getPort(ID::B)).c_str());
 			}
 
 			unproven_count += GetSize(unproven_equiv_cells);

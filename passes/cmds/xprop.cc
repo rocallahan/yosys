@@ -1068,7 +1068,7 @@ struct XpropWorker
 
 		if (options.formal && !enc_undriven_wires.empty()) {
 			for (auto &bit : enc_undriven_wires)
-				log_warning("Found encoded wire %s having a non-encoded driver\n", log_signal(bit));
+				log_warning("Found encoded wire %s having a non-encoded driver\n", log_signal(bit).c_str());
 
 			log_error("Found encoded wires having a non-encoded driver, not allowed in -formal mode\n");
 		}

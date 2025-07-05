@@ -518,7 +518,7 @@ struct SimplecWorker
 							continue;
 						if (verbose)
 							log("    Propagating %s.%s[%d:%d].\n", work->log_prefix.c_str(), log_id(chunk.wire), chunk.offset+chunk.width-1, chunk.offset);
-						funct_declarations.push_back(stringf("  // Updated signal in %s: %s", work->log_prefix.c_str(), log_signal(chunk)));
+						funct_declarations.push_back(stringf("  // Updated signal in %s: %s", work->log_prefix.c_str(), log_signal(chunk).c_str()));
 					}
 
 					for (SigBit bit : dirtysig)

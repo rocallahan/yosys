@@ -88,7 +88,7 @@ struct SatHelper
 		std::vector<RTLIL::SigBit> sigbits = sig.to_sigbit_vector();
 		for (size_t i = 0; i < sigbits.size(); i++)
 			if (sigbits[i].wire == NULL && sigbits[i].data == RTLIL::State::Sx)
-				log_cmd_error("Bit %d of %s is undef but option -enable_undef is missing!\n", int(i), log_signal(sig));
+				log_cmd_error("Bit %d of %s is undef but option -enable_undef is missing!\n", int(i), log_signal(sig).c_str());
 	}
 
 	void setup(int timestep = -1, bool initstate = false)
@@ -119,9 +119,9 @@ struct SatHelper
 
 			if (lhs.size() != rhs.size())
 				log_cmd_error("Set expression with different lhs and rhs sizes: %s (%s, %d bits) vs. %s (%s, %d bits)\n",
-					s.first.c_str(), log_signal(lhs), lhs.size(), s.second.c_str(), log_signal(rhs), rhs.size());
+					s.first.c_str(), log_signal(lhs).c_str(), lhs.size(), s.second.c_str(), log_signal(rhs).c_str(), rhs.size());
 
-			log("Import set-constraint: %s = %s\n", log_signal(lhs), log_signal(rhs));
+			log("Import set-constraint: %s = %s\n", log_signal(lhs).c_str(), log_signal(rhs).c_str());
 			big_lhs.remove2(lhs, &big_rhs);
 			big_lhs.append(lhs);
 			big_rhs.append(rhs);
@@ -140,9 +140,9 @@ struct SatHelper
 
 			if (lhs.size() != rhs.size())
 				log_cmd_error("Set expression with different lhs and rhs sizes: %s (%s, %d bits) vs. %s (%s, %d bits)\n",
-					s.first.c_str(), log_signal(lhs), lhs.size(), s.second.c_str(), log_signal(rhs), rhs.size());
+					s.first.c_str(), log_signal(lhs).c_str(), lhs.size(), s.second.c_str(), log_signal(rhs).c_str(), rhs.size());
 
-			log("Import set-constraint for this timestep: %s = %s\n", log_signal(lhs), log_signal(rhs));
+			log("Import set-constraint for this timestep: %s = %s\n", log_signal(lhs).c_str(), log_signal(rhs).c_str());
 			big_lhs.remove2(lhs, &big_rhs);
 			big_lhs.append(lhs);
 			big_rhs.append(rhs);
@@ -156,11 +156,11 @@ struct SatHelper
 				log_cmd_error("Failed to parse lhs set expression `%s'.\n", s.c_str());
 			show_signal_pool.add(sigmap(lhs));
 
-			log("Import unset-constraint for this timestep: %s\n", log_signal(lhs));
+			log("Import unset-constraint for this timestep: %s\n", log_signal(lhs).c_str());
 			big_lhs.remove2(lhs, &big_rhs);
 		}
 
-		log("Final constraint equation: %s = %s\n", log_signal(big_lhs), log_signal(big_rhs));
+		log("Final constraint equation: %s = %s\n", log_signal(big_lhs).c_str(), log_signal(big_rhs).c_str());
 		check_undef_enabled(big_lhs), check_undef_enabled(big_rhs);
 		ez->assume(satgen.signals_eq(big_lhs, big_rhs, timestep));
 
@@ -219,7 +219,7 @@ struct SatHelper
 
 		for (int t = 0; t < 3; t++)
 		for (auto &sig : sets_def_undef[t]) {
-			log("Import %s constraint for this timestep: %s\n", t == 0 ? "def" : t == 1 ? "any_undef" : "all_undef", log_signal(sig));
+			log("Import %s constraint for this timestep: %s\n", t == 0 ? "def" : t == 1 ? "any_undef" : "all_undef", log_signal(sig).c_str());
 			std::vector<int> undef_sig = satgen.importUndefSigSpec(sig, timestep);
 			if (t == 0)
 				ez->assume(ez->NOT(ez->expression(ezSAT::OpOr, undef_sig)));
@@ -249,7 +249,7 @@ struct SatHelper
 			RTLIL::SigSpec assumes_a, assumes_en;
 			satgen.getAssumes(assumes_a, assumes_en, timestep);
 			for (int i = 0; i < GetSize(assumes_a); i++)
-				log("Import constraint from assume cell: %s when %s.\n", log_signal(assumes_a[i]), log_signal(assumes_en[i]));
+				log("Import constraint from assume cell: %s when %s.\n", log_signal(assumes_a[i]).c_str(), log_signal(assumes_en[i]).c_str());
 			ez->assume(satgen.importAssumes(timestep));
 		}
 
@@ -285,10 +285,10 @@ struct SatHelper
 				}
 
 				if (removed_bits.size())
-					log_warning("ignoring initial value on non-register: %s\n", log_signal(removed_bits));
+					log_warning("ignoring initial value on non-register: %s\n", log_signal(removed_bits).c_str());
 
 				if (lhs.size()) {
-					log("Import set-constraint from init attribute: %s = %s\n", log_signal(lhs), log_signal(rhs));
+					log("Import set-constraint from init attribute: %s = %s\n", log_signal(lhs).c_str(), log_signal(rhs).c_str());
 					big_lhs.remove2(lhs, &big_rhs);
 					big_lhs.append(lhs);
 					big_rhs.append(rhs);
@@ -308,9 +308,9 @@ struct SatHelper
 
 				if (lhs.size() != rhs.size())
 					log_cmd_error("Set expression with different lhs and rhs sizes: %s (%s, %d bits) vs. %s (%s, %d bits)\n",
-						s.first.c_str(), log_signal(lhs), lhs.size(), s.second.c_str(), log_signal(rhs), rhs.size());
+						s.first.c_str(), log_signal(lhs).c_str(), lhs.size(), s.second.c_str(), log_signal(rhs).c_str(), rhs.size());
 
-				log("Import init set-constraint: %s = %s\n", log_signal(lhs), log_signal(rhs));
+				log("Import init set-constraint: %s = %s\n", log_signal(lhs).c_str(), log_signal(rhs).c_str());
 				big_lhs.remove2(lhs, &big_rhs);
 				big_lhs.append(lhs);
 				big_rhs.append(rhs);
@@ -318,7 +318,7 @@ struct SatHelper
 
 			if (!satgen.initial_state.check_all(big_lhs)) {
 				RTLIL::SigSpec rem = satgen.initial_state.remove(big_lhs);
-				log_cmd_error("Found -set-init bits that are not part of the initial_state: %s\n", log_signal(rem));
+				log_cmd_error("Found -set-init bits that are not part of the initial_state: %s\n", log_signal(rem).c_str());
 			}
 
 			if (set_init_def) {
@@ -347,7 +347,7 @@ struct SatHelper
 				return;
 			}
 
-			log("Final init constraint equation: %s = %s\n", log_signal(big_lhs), log_signal(big_rhs));
+			log("Final init constraint equation: %s = %s\n", log_signal(big_lhs).c_str(), log_signal(big_rhs).c_str());
 			check_undef_enabled(big_lhs), check_undef_enabled(big_rhs);
 			ez->assume(satgen.signals_eq(big_lhs, big_rhs, timestep));
 		}
@@ -375,15 +375,15 @@ struct SatHelper
 
 				if (lhs.size() != rhs.size())
 					log_cmd_error("Proof expression with different lhs and rhs sizes: %s (%s, %d bits) vs. %s (%s, %d bits)\n",
-						s.first.c_str(), log_signal(lhs), lhs.size(), s.second.c_str(), log_signal(rhs), rhs.size());
+						s.first.c_str(), log_signal(lhs).c_str(), lhs.size(), s.second.c_str(), log_signal(rhs).c_str(), rhs.size());
 
-				log("Import proof-constraint: %s = %s\n", log_signal(lhs), log_signal(rhs));
+				log("Import proof-constraint: %s = %s\n", log_signal(lhs).c_str(), log_signal(rhs).c_str());
 				big_lhs.remove2(lhs, &big_rhs);
 				big_lhs.append(lhs);
 				big_rhs.append(rhs);
 			}
 
-			log("Final proof equation: %s = %s\n", log_signal(big_lhs), log_signal(big_rhs));
+			log("Final proof equation: %s = %s\n", log_signal(big_lhs).c_str(), log_signal(big_rhs).c_str());
 			check_undef_enabled(big_lhs), check_undef_enabled(big_rhs);
 			prove_bits.push_back(satgen.signals_eq(big_lhs, big_rhs, timestep));
 		}
@@ -403,15 +403,15 @@ struct SatHelper
 
 				if (lhs.size() != rhs.size())
 					log_cmd_error("Proof-x expression with different lhs and rhs sizes: %s (%s, %d bits) vs. %s (%s, %d bits)\n",
-						s.first.c_str(), log_signal(lhs), lhs.size(), s.second.c_str(), log_signal(rhs), rhs.size());
+						s.first.c_str(), log_signal(lhs).c_str(), lhs.size(), s.second.c_str(), log_signal(rhs).c_str(), rhs.size());
 
-				log("Import proof-x-constraint: %s = %s\n", log_signal(lhs), log_signal(rhs));
+				log("Import proof-x-constraint: %s = %s\n", log_signal(lhs).c_str(), log_signal(rhs).c_str());
 				big_lhs.remove2(lhs, &big_rhs);
 				big_lhs.append(lhs);
 				big_rhs.append(rhs);
 			}
 
-			log("Final proof-x equation: %s = %s\n", log_signal(big_lhs), log_signal(big_rhs));
+			log("Final proof-x equation: %s = %s\n", log_signal(big_lhs).c_str(), log_signal(big_rhs).c_str());
 
 			std::vector<int> value_lhs = satgen.importDefSigSpec(big_lhs, timestep);
 			std::vector<int> value_rhs = satgen.importDefSigSpec(big_rhs, timestep);
@@ -427,7 +427,7 @@ struct SatHelper
 			RTLIL::SigSpec asserts_a, asserts_en;
 			satgen.getAsserts(asserts_a, asserts_en, timestep);
 			for (int i = 0; i < GetSize(asserts_a); i++)
-				log("Import proof for assert: %s when %s.\n", log_signal(asserts_a[i]), log_signal(asserts_en[i]));
+				log("Import proof for assert: %s when %s.\n", log_signal(asserts_a[i]).c_str(), log_signal(asserts_en[i]).c_str());
 			prove_bits.push_back(satgen.importAsserts(timestep));
 		}
 
@@ -546,13 +546,13 @@ struct SatHelper
 				RTLIL::SigSpec sig;
 				if (!RTLIL::SigSpec::parse_sel(sig, design, module, s))
 					log_cmd_error("Failed to parse show expression `%s'.\n", s.c_str());
-				log("Import show expression: %s\n", log_signal(sig));
+				log("Import show expression: %s\n", log_signal(sig).c_str());
 				modelSig.append(sig);
 			}
 		}
 
 		modelSig.sort_and_unify();
-		// log("Model signals: %s\n", log_signal(modelSig));
+		// log("Model signals: %s\n", log_signal(modelSig).c_str());
 
 		std::vector<int> modelUndefExpressions;
 

@@ -43,22 +43,22 @@ void create_ice40_dsp(ice40_dsp_pm &pm)
 	log_debug("\n");
 
 	if (GetSize(st.sigA) > 16) {
-		log("  input A (%s) is too large (%d > 16).\n", log_signal(st.sigA), GetSize(st.sigA));
+		log("  input A (%s) is too large (%d > 16).\n", log_signal(st.sigA).c_str(), GetSize(st.sigA));
 		return;
 	}
 
 	if (GetSize(st.sigB) > 16) {
-		log("  input B (%s) is too large (%d > 16).\n", log_signal(st.sigB), GetSize(st.sigB));
+		log("  input B (%s) is too large (%d > 16).\n", log_signal(st.sigB).c_str(), GetSize(st.sigB));
 		return;
 	}
 
 	if (GetSize(st.sigO) > 33) {
-		log("  adder/accumulator (%s) is too large (%d > 33).\n", log_signal(st.sigO), GetSize(st.sigO));
+		log("  adder/accumulator (%s) is too large (%d > 33).\n", log_signal(st.sigO).c_str(), GetSize(st.sigO));
 		return;
 	}
 
 	if (GetSize(st.sigH) > 32) {
-		log("  output (%s) is too large (%d > 32).\n", log_signal(st.sigH), GetSize(st.sigH));
+		log("  output (%s) is too large (%d > 32).\n", log_signal(st.sigH).c_str(), GetSize(st.sigH));
 		return;
 	}
 
@@ -132,7 +132,7 @@ void create_ice40_dsp(ice40_dsp_pm &pm)
 		cell->setPort(ID(CE), State::S1);
 		cell->setParam(ID(NEG_TRIGGER), st.clock_pol ? State::S0 : State::S1);
 
-		log("  clock: %s (%s)", log_signal(st.clock), st.clock_pol ? "posedge" : "negedge");
+		log("  clock: %s (%s)", log_signal(st.clock).c_str(), st.clock_pol ? "posedge" : "negedge");
 
 		if (st.ffA)
 			log(" ffA:%s", log_id(st.ffA));

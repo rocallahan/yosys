@@ -177,11 +177,11 @@ struct EquivMakeWorker
 
 					if (GetSize(dec_sig) != GetSize(dec_pat))
 						log_error("Invalid pattern %s for signal %s of size %d!\n",
-								log_signal(dec_pat), log_signal(dec_sig), GetSize(dec_sig));
+								log_signal(dec_pat).c_str(), log_signal(dec_sig).c_str(), GetSize(dec_sig));
 
 					if (GetSize(enc_sig) != GetSize(enc_pat))
 						log_error("Invalid pattern %s for signal %s of size %d!\n",
-								log_signal(enc_pat), log_signal(enc_sig), GetSize(enc_sig));
+								log_signal(enc_pat).c_str(), log_signal(enc_sig).c_str(), GetSize(enc_sig));
 
 					SigSpec reduced_dec_sig, reduced_dec_pat;
 					for (int i = 0; i < GetSize(dec_sig); i++)
@@ -233,8 +233,8 @@ struct EquivMakeWorker
 			}
 
 			log("Presumably equivalent wires: %s (%s), %s (%s) -> %s\n",
-					log_id(gold_wire), log_signal(assign_map(gold_wire)),
-					log_id(gate_wire), log_signal(assign_map(gate_wire)), log_id(id));
+					log_id(gold_wire), log_signal(assign_map(gold_wire)).c_str(),
+					log_id(gate_wire), log_signal(assign_map(gate_wire)).c_str(), log_id(id));
 
 			if (gold_wire->port_output || gate_wire->port_output)
 			{
@@ -314,7 +314,7 @@ struct EquivMakeWorker
 				if (old_sig != new_sig) {
 					log("Changing input %s of cell %s (%s): %s -> %s\n",
 							log_id(conn.first), log_id(c), log_id(c->type),
-							log_signal(old_sig), log_signal(new_sig));
+							log_signal(old_sig).c_str(), log_signal(new_sig).c_str());
 					c->setPort(conn.first, new_sig);
 				}
 			}
@@ -408,7 +408,7 @@ struct EquivMakeWorker
 			undriven_sig.sort_and_unify();
 
 			for (auto chunk : undriven_sig.chunks()) {
-				log("Setting undriven nets to undef: %s\n", log_signal(chunk));
+				log("Setting undriven nets to undef: %s\n", log_signal(chunk).c_str());
 				equiv_mod->connect(chunk, SigSpec(State::Sx, chunk.width));
 			}
 		}

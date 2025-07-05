@@ -2193,7 +2193,7 @@ bool AstNode::simplify(bool const_fold, int stage, int width_hint, bool sign_hin
 			if (children[0]->type == AST_REALVALUE) {
 				RTLIL::Const constvalue = children[0]->realAsConst(width);
 				log_file_warning(filename, location.first_line, "converting real value %e to binary %s.\n",
-						children[0]->realvalue, log_signal(constvalue));
+						children[0]->realvalue, log_signal(constvalue).c_str());
 				delete children[0];
 				children[0] = mkconst_bits(constvalue.to_bits(), sign_hint);
 				fixup_hierarchy_flags();
@@ -5385,7 +5385,7 @@ AstNode *AstNode::eval_const_function(AstNode *fcall, bool must_succeed)
 #if 0
 		log("-----------------------------------\n");
 		for (auto &it : variables)
-			log("%20s %40s\n", it.first.c_str(), log_signal(it.second.val));
+			log("%20s %40s\n", it.first.c_str(), log_signal(it.second.val).c_str());
 		stmt->dumpAst(NULL, "stmt> ");
 #endif
 

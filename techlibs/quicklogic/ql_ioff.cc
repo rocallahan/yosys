@@ -81,7 +81,7 @@ struct QlIoffPass : public Pass {
 		}
 
 		for (auto cell : input_ffs) {
-			log("Promoting register %s to input IOFF.\n", log_signal(cell->getPort(ID::Q)));
+			log("Promoting register %s to input IOFF.\n", log_signal(cell->getPort(ID::Q)).c_str());
 			cell->type = ID(dff);
 			cell->unsetPort(ID::E);
 			cell->unsetPort(ID::R);
@@ -106,7 +106,7 @@ struct QlIoffPass : public Pass {
 				SigSpec sig_n(new_port_output);
 				for (int i = 0; i < new_port_output->width; i++) {
 					if (ioff_cells[i]) {
-						log("Promoting %s to output IOFF.\n", log_signal(sig_n[i]));
+						log("Promoting %s to output IOFF.\n", log_signal(sig_n[i]).c_str());
 
 						RTLIL::Cell *new_cell = module->addCell(NEW_ID, ID(dff));
 						new_cell->setPort(ID::C, ioff_cells[i]->getPort(ID::C));

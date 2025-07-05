@@ -148,13 +148,13 @@ struct ModIndex : public RTLIL::Monitor
 		{
 			for (auto &it : database_bak)
 				if (!database.count(it.first))
-					log("ModuleIndex::check(): Only in database_bak, not database: %s\n", log_signal(it.first));
+					log("ModuleIndex::check(): Only in database_bak, not database: %s\n", log_signal(it.first).c_str());
 
 			for (auto &it : database)
 				if (!database_bak.count(it.first))
-					log("ModuleIndex::check(): Only in database, not database_bak: %s\n", log_signal(it.first));
+					log("ModuleIndex::check(): Only in database, not database_bak: %s\n", log_signal(it.first).c_str());
 				else if (!(it.second == database_bak.at(it.first)))
-					log("ModuleIndex::check(): Different content for database[%s].\n", log_signal(it.first));
+					log("ModuleIndex::check(): Different content for database[%s].\n", log_signal(it.first).c_str());
 
 			log_assert(database == database_bak);
 		}
@@ -288,7 +288,7 @@ struct ModIndex : public RTLIL::Monitor
 		}
 
 		for (auto &it : database) {
-			log("BIT %s:\n", log_signal(it.first));
+			log("BIT %s:\n", log_signal(it.first).c_str());
 			if (it.second.is_input)
 				log("  PRIMARY INPUT\n");
 			if (it.second.is_output)

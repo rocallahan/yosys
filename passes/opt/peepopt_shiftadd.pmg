@@ -106,7 +106,7 @@ code
 	if(shiftadd_max_ratio>0 && offset<0 && -offset*shiftadd_max_ratio > old_a.size()) {
 		log_warning("at %s: candiate for shiftadd optimization (shifting '%s' by '%s - %d' bits) " 
 					"was ignored to avoid high resource usage, see help peepopt\n", 
-					location.c_str(), log_signal(old_a), log_signal(var_signal), -offset);
+					location.c_str(), log_signal(old_a).c_str(), log_signal(var_signal).c_str(), -offset);
 		reject;
 	}
 
@@ -130,10 +130,10 @@ code
 				location = shift->name.str();
 			if(shift->type.in($shiftx))
 				log_warning("at %s: result of indexed part-selection is always constant (selecting from '%s' with index '%s + %d')\n", \
-							location.c_str(), log_signal(old_a), log_signal(var_signal), offset);
+							location.c_str(), log_signal(old_a).c_str(), log_signal(var_signal).c_str(), offset);
 			else
 				log_warning("at %s: result of shift operation is always constant (shifting '%s' by '%s + %d' bits)\n", \
-							location.c_str(), log_signal(old_a), log_signal(var_signal), offset);
+							location.c_str(), log_signal(old_a).c_str(), log_signal(var_signal).c_str(), offset);
 		}
 	}
 

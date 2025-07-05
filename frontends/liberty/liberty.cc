@@ -168,7 +168,7 @@ static RTLIL::SigSpec parse_func_expr(RTLIL::Module *module, const char *expr)
 #if 0
 	for (size_t i = 0; i < stack.size(); i++)
 		if (stack[i].type < 16)
-			log("%3d: %d %s\n", int(i), stack[i].type, log_signal(stack[i].sig));
+			log("%3d: %d %s\n", int(i), stack[i].type, log_signal(stack[i].sig).c_str());
 		else
 			log("%3d: %c\n", int(i), stack[i].type);
 #endif

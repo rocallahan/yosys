@@ -280,10 +280,10 @@ void maccmap(RTLIL::Module *module, RTLIL::Cell *cell, bool unmap)
 
 	for (auto &term : macc.terms)
 		if (GetSize(term.in_b) == 0)
-			log("  %s %s (%d bits, %s)\n", term.do_subtract ? "sub" : "add", log_signal(term.in_a),
+			log("  %s %s (%d bits, %s)\n", term.do_subtract ? "sub" : "add", log_signal(term.in_a).c_str(),
 					GetSize(term.in_a), term.is_signed ? "signed" : "unsigned");
 		else
-			log("  %s %s * %s (%dx%d bits, %s)\n", term.do_subtract ? "sub" : "add", log_signal(term.in_a), log_signal(term.in_b),
+			log("  %s %s * %s (%dx%d bits, %s)\n", term.do_subtract ? "sub" : "add", log_signal(term.in_a).c_str(), log_signal(term.in_b).c_str(),
 					GetSize(term.in_a), GetSize(term.in_b), term.is_signed ? "signed" : "unsigned");
 
 	if (unmap)

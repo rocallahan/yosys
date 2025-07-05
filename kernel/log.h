@@ -203,7 +203,7 @@ struct LogExpectedItem
 extern dict<std::string, LogExpectedItem> log_expect_log, log_expect_warning, log_expect_error;
 void log_check_expected();
 
-const char *log_signal(const RTLIL::SigSpec &sig, bool autoint = true);
+std::string log_signal(const RTLIL::SigSpec &sig, bool autoint = true);
 std::string log_const(const RTLIL::Const &value, bool autoint = true);
 
 // `id` must live unchnaged until the returned pointer is no longer used.

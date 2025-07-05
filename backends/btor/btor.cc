@@ -231,7 +231,7 @@ struct BtorWorker
 	void add_nid_sig(int nid, const SigSpec &sig)
 	{
 		if (verbose)
-			f << indent << stringf("; %d %s\n", nid, log_signal(sig));
+			f << indent << stringf("; %d %s\n", nid, log_signal(sig).c_str());
 
 		for (int i = 0; i < GetSize(sig); i++)
 			bit_nid[sig[i]] = make_pair(nid, i);
@@ -737,7 +737,7 @@ struct BtorWorker
 			if (nid_init_val >= 0) {
 				int nid_init = next_nid++;
 				if (verbose)
-					btorf("; initval = %s\n", log_signal(initval));
+					btorf("; initval = %s\n", log_signal(initval).c_str());
 				btorf("%d init %d %d %d\n", nid_init, sid, nid, nid_init_val);
 			}
 
@@ -839,7 +839,7 @@ struct BtorWorker
 				if (constword && firstword.is_fully_def())
 				{
 					if (verbose)
-						btorf("; initval = %s\n", log_signal(firstword));
+						btorf("; initval = %s\n", log_signal(firstword).c_str());
 					nid_init_val = get_sig_nid(firstword, -1, false, true);
 				}
 				else
@@ -859,7 +859,7 @@ struct BtorWorker
 						int last_nid_init_val = nid_init_val;
 						nid_init_val = next_nid++;
 						if (verbose)
-							btorf("; initval[%d] = %s\n", i, log_signal(thisword));
+							btorf("; initval[%d] = %s\n", i, log_signal(thisword).c_str());
 						btorf("%d write %d %d %d %d\n", nid_init_val, sid, last_nid_init_val, nid_thisaddr, nid_thisword);
 					}
 				}
@@ -1074,7 +1074,7 @@ struct BtorWorker
 									bit_cell.count(sig[i+GetSize(s)]) == 0)
 								s.append(sig[i+GetSize(s)]);
 
-							log_warning("No driver for signal %s.\n", log_signal(s));
+							log_warning("No driver for signal %s.\n", log_signal(s).c_str());
 
 							int sid = get_bv_sid(GetSize(s));
 							int nid = next_nid++;

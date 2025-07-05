@@ -96,7 +96,7 @@ struct AigerWriter
 					if (report_bit.is_wire() && report_bit.wire->name.isPublic())
 						break;
 				}
-				log_error("Found combinational logic loop while processing signal %s.\n", log_signal(report_bit));
+				log_error("Found combinational logic loop while processing signal %s.\n", log_signal(report_bit).c_str());
 			}
 			next_loop_check *= 2;
 		}
@@ -349,7 +349,7 @@ struct AigerWriter
 		if (!undriven_bits.empty()) {
 			undriven_bits.sort();
 			for (auto bit : undriven_bits) {
-				log_warning("Treating undriven bit %s.%s like $anyseq.\n", log_id(module), log_signal(bit));
+				log_warning("Treating undriven bit %s.%s like $anyseq.\n", log_id(module), log_signal(bit).c_str());
 				input_bits.insert(bit);
 			}
 			log_warning("Treating a total of %d undriven bits in %s like $anyseq.\n", GetSize(undriven_bits), log_id(module));

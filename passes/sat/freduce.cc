@@ -121,7 +121,7 @@ struct FindReducedInputs
 		}
 		log_assert(sat_pi_uniq_bitvec.size() == idx_bits);
 
-		sat_pi[bit] = ez->frozen_literal(stringf("p, falsei_%s", log_signal(bit)));
+		sat_pi[bit] = ez->frozen_literal(stringf("p, falsei_%s", log_signal(bit).c_str()));
 		ez->assume(ez->IFF(ez->XOR(sat_a, sat_b), sat_pi[bit]));
 
 		for (size_t i = 0; i < idx_bits; i++)
@@ -169,7 +169,7 @@ struct FindReducedInputs
 	void analyze(std::vector<RTLIL::SigBit> &reduced_inputs, RTLIL::SigBit output, int prec)
 	{
 		if (verbose_level >= 1)
-			log("[%2d%%]  Analyzing input cone for signal %s:\n", prec, log_signal(output));
+			log("[%2d%%]  Analyzing input cone for signal %s:\n", prec, log_signal(output).c_str());
 
 		std::vector<RTLIL::SigBit> pi;
 		register_cone(pi, output);
@@ -209,7 +209,7 @@ struct FindReducedInputs
 			for (size_t i = 0; i < model_pi_idx.size(); i++)
 				if (model[i]) {
 					if (verbose_level >= 2)
-						log("         Found relevant input: %s\n", log_signal(pi[model_pi_idx[i]]));
+						log("         Found relevant input: %s\n", log_signal(pi[model_pi_idx[i]]).c_str());
 					unused_pi_idx.erase(model_pi_idx[i]);
 					found_count++;
 				}
@@ -251,7 +251,7 @@ struct PerformReduction
 		if (recursion_guard.count(out)) {
 			string loop_signals;
 			for (auto loop_bit : recursion_guard)
-				loop_signals += string(" ") + log_signal(loop_bit);
+				loop_signals += string(" ") + log_signal(loop_bit).c_str();
 			log_error("Found logic loop:%s\n", loop_signals.c_str());
 		}
 
@@ -306,7 +306,7 @@ struct PerformReduction
 	void analyze_const(std::vector<std::vector<equiv_bit_t>> &results, int idx)
 	{
 		if (verbose_level == 1)
-			log("    Finding const value for %s.\n", log_signal(out_bits[idx]));
+			log("    Finding const value for %s.\n", log_signal(out_bits[idx]).c_str());
 
 		bool can_be_set = ez->solve(ez->AND(sat_out[idx], sat_def[idx]));
 		bool can_be_clr = ez->solve(ez->AND(ez->NOT(sat_out[idx]), sat_def[idx]));
@@ -318,7 +318,7 @@ struct PerformReduction
 		if (can_be_clr)
 			value = RTLIL::State::S0;
 		if (verbose_level == 1)
-			log("      Constant value for this signal: %s\n", log_signal(value));
+			log("      Constant value for this signal: %s\n", log_signal(value).c_str());
 
 		int result_idx = -1;
 		for (size_t i = 0; i < results.size(); i++) {
@@ -362,7 +362,7 @@ struct PerformReduction
 			std::vector<RTLIL::SigBit> bucket_sigbits;
 			for (int idx : bucket)
 				bucket_sigbits.push_back(out_bits[idx]);
-			log("%s  Trying to shatter bucket with %d signals: %s\n", indt, int(bucket.size()), log_signal(bucket_sigbits));
+			log("%s  Trying to shatter bucket with %d signals: %s\n", indt, int(bucket.size()), log_signal(bucket_sigbits).c_str());
 		}
 
 		std::vector<int> sat_set_list, sat_clr_list;
@@ -416,10 +416,10 @@ struct PerformReduction
 
 			if (verbose_level >= 2) {
 				for (size_t i = 0; i < pi_bits.size(); i++)
-					log("%s       -> PI  %c == %s\n", indt, model[2*sat_out.size() + i] ? '1' : '0', log_signal(pi_bits[i]));
+					log("%s       -> PI  %c == %s\n", indt, model[2*sat_out.size() + i] ? '1' : '0', log_signal(pi_bits[i]).c_str());
 				for (int idx : bucket)
 					log("%s       -> OUT %c == %s%s\n", indt, model[sat_out.size() + idx] ? model[idx] ? '1' : '0' : 'x',
-							out_inverted.at(idx) ? "~" : "", log_signal(out_bits[idx]));
+							out_inverted.at(idx) ? "~" : "", log_signal(out_bits[idx]).c_str());
 			}
 
 			std::vector<int> buckets_a;
@@ -460,7 +460,7 @@ struct PerformReduction
 			if (verbose_level >= 1) {
 				log("%s    Found %d equivalent signals:", indt, int(bucket.size()));
 				for (int idx : bucket)
-					log("%s%s%s", idx == bucket.front() ? " " : ", ", out_inverted[idx] ? "~" : "", log_signal(out_bits[idx]));
+					log("%s%s%s", idx == bucket.front() ? " " : ", ", out_inverted[idx] ? "~" : "", log_signal(out_bits[idx]).c_str());
 				log("\n");
 			}
 
@@ -507,7 +507,7 @@ struct PerformReduction
 				std::vector<RTLIL::SigBit> r_sigbits;
 				for (int idx : r)
 					r_sigbits.push_back(out_bits[idx]);
-				log("  Found group of %d equivalent signals: %s\n", int(r.size()), log_signal(r_sigbits));
+				log("  Found group of %d equivalent signals: %s\n", int(r.size()), log_signal(r_sigbits).c_str());
 			}
 
 			std::vector<int> undef_slaves;
@@ -653,7 +653,7 @@ struct FreduceWorker
 
 		found_selected_wire:
 			log("  Finding reduced input cone for signal batch %s%c\n",
-					log_signal(batch), verbose_level ? ':' : '.');
+					log_signal(batch).c_str(), verbose_level ? ':' : '.');
 
 			FindReducedInputs infinder(sigmap, drivers);
 			for (auto &bit : batch) {
@@ -676,12 +676,12 @@ struct FreduceWorker
 				continue;
 
 			if (bucket.first.size() == 0) {
-				log("  Finding const values for bucket %s%c\n", log_signal(bucket.second), verbose_level ? ':' : '.');
+				log("  Finding const values for bucket %s%c\n", log_signal(bucket.second).c_str(), verbose_level ? ':' : '.');
 				PerformReduction worker(sigmap, drivers, inv_pairs, bucket.second, bucket.first.size());
 				for (size_t idx = 0; idx < bucket.second.size(); idx++)
 					worker.analyze_const(equiv, idx);
 			} else {
-				log("  Trying to shatter bucket %s%c\n", log_signal(bucket.second), verbose_level ? ':' : '.');
+				log("  Trying to shatter bucket %s%c\n", log_signal(bucket.second).c_str(), verbose_level ? ':' : '.');
 				PerformReduction worker(sigmap, drivers, inv_pairs, bucket.second, bucket.first.size());
 				worker.analyze(equiv, 100 * bucket_count / (buckets.size() + 1));
 			}
@@ -698,27 +698,27 @@ struct FreduceWorker
 		int rewired_sigbits = 0;
 		for (auto &grp : equiv)
 		{
-			log("    [%05d] Using as master for group: %s\n", ++reduce_counter, log_signal(grp.front().bit));
+			log("    [%05d] Using as master for group: %s\n", ++reduce_counter, log_signal(grp.front().bit).c_str());
 
 			RTLIL::SigSpec inv_sig;
 			for (size_t i = 1; i < grp.size(); i++)
 			{
 				if (!design->selected(module, grp[i].bit.wire)) {
-					log("      Skipping not-selected slave: %s\n", log_signal(grp[i].bit));
+					log("      Skipping not-selected slave: %s\n", log_signal(grp[i].bit).c_str());
 					continue;
 				}
 
 				if (grp[i].bit.wire->port_id == 0 && bitusage[grp[i].bit] <= 1) {
-					log("      Skipping unused slave: %s\n", log_signal(grp[i].bit));
+					log("      Skipping unused slave: %s\n", log_signal(grp[i].bit).c_str());
 					continue;
 				}
 
 				if (find_bit_in_cone(grp[i].bit, grp.front().bit)) {
-					log("      Skipping dependency of master: %s\n", log_signal(grp[i].bit));
+					log("      Skipping dependency of master: %s\n", log_signal(grp[i].bit).c_str());
 					continue;
 				}
 
-				log("      Connect slave%s: %s\n", grp[i].inverted ? " using inverter" : "", log_signal(grp[i].bit));
+				log("      Connect slave%s: %s\n", grp[i].inverted ? " using inverter" : "", log_signal(grp[i].bit).c_str());
 
 				RTLIL::Cell *drv = drivers.at(grp[i].bit).first;
 				RTLIL::Wire *dummy_wire = module->addWire(NEW_ID);

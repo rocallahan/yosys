@@ -127,7 +127,7 @@ struct CheckPass : public Pass {
 						for (auto bit : sigmap(action.first))
 							wire_drivers[bit].push_back(
 								stringf("action %s <= %s (case rule) in process %s",
-										log_signal(action.first), log_signal(action.second), log_id(proc_it.first)));
+										log_signal(action.first).c_str(), log_signal(action.second).c_str(), log_id(proc_it.first)));
 
 						for (auto bit : sigmap(action.second))
 							if (bit.wire) used_wires.insert(bit);
@@ -148,7 +148,7 @@ struct CheckPass : public Pass {
 						for (auto bit : sigmap(action.first))
 							wire_drivers[bit].push_back(
 								stringf("action %s <= %s (sync rule) in process %s",
-										log_signal(action.first), log_signal(action.second), log_id(proc_it.first)));
+										log_signal(action.first).c_str(), log_signal(action.second).c_str(), log_id(proc_it.first)));
 						for (auto bit : sigmap(action.second))
 							if (bit.wire) used_wires.insert(bit);
 					}
@@ -307,7 +307,7 @@ struct CheckPass : public Pass {
 
 			for (auto state : {State::S0, State::S1, State::Sx})
 				if (wire_drivers.count(state)) {
-					string message = stringf("Drivers conflicting with a constant %s driver:\n", log_signal(state));
+					string message = stringf("Drivers conflicting with a constant %s driver:\n", log_signal(state).c_str());
 					for (auto str : wire_drivers[state])
 						message += stringf("    %s\n", str.c_str());
 					log_warning("%s", message.c_str());
@@ -316,7 +316,7 @@ struct CheckPass : public Pass {
 
 			for (auto it : wire_drivers)
 				if (wire_drivers_count[it.first] > 1) {
-					string message = stringf("multiple conflicting drivers for %s.%s:\n", log_id(module), log_signal(it.first));
+					string message = stringf("multiple conflicting drivers for %s.%s:\n", log_id(module), log_signal(it.first).c_str());
 					for (auto str : it.second)
 						message += stringf("    %s\n", str.c_str());
 					log_warning("%s", message.c_str());
@@ -325,7 +325,7 @@ struct CheckPass : public Pass {
 
 			for (auto bit : used_wires)
 				if (!wire_drivers.count(bit)) {
-					log_warning("Wire %s.%s is used but has no driver.\n", log_id(module), log_signal(bit));
+					log_warning("Wire %s.%s is used but has no driver.\n", log_id(module), log_signal(bit).c_str());
 					counter++;
 				}
 
@@ -400,7 +400,7 @@ struct CheckPass : public Pass {
 							std::string src_attr = wire->get_src_attribute();
 							wire_src = stringf(" source: %s", src_attr.c_str());
 						}
-						message += stringf("    wire %s%s\n", log_signal(SigBit(wire, pair.second)), wire_src.c_str());						
+						message += stringf("    wire %s%s\n", log_signal(SigBit(wire, pair.second)).c_str(), wire_src.c_str());
 					}
 
 					prev = bit;
@@ -424,7 +424,7 @@ struct CheckPass : public Pass {
 				init_sig.sort_and_unify();
 
 				for (auto chunk : init_sig.chunks()) {
-					log_warning("Wire %s.%s has 'init' attribute and is not driven by an FF cell.\n", log_id(module), log_signal(chunk));
+					log_warning("Wire %s.%s has 'init' attribute and is not driven by an FF cell.\n", log_id(module), log_signal(chunk).c_str());
 					counter++;
 				}
 			}

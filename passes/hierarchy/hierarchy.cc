@@ -1484,7 +1484,7 @@ struct HierarchyPass : public Pass {
 
 					if (w->port_output && !w->port_input && sig.has_const())
 						log_error("Output port %s.%s.%s (%s) is connected to constants: %s\n",
-								log_id(module), log_id(cell), log_id(conn.first), log_id(cell->type), log_signal(sig));
+								log_id(module), log_id(cell), log_id(conn.first), log_id(cell->type), log_signal(sig).c_str());
 				}
 			}
 		}

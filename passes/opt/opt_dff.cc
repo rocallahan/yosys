@@ -647,7 +647,7 @@ struct OptDffWorker
 						if (new_cell)
 							dff_cells.push_back(new_cell);
 						log("Adding SRST signal on %s (%s) from module %s (D = %s, Q = %s, rval = %s).\n",
-								log_id(cell), log_id(cell->type), log_id(module), log_signal(new_ff.sig_d), log_signal(new_ff.sig_q), log_signal(new_ff.val_srst));
+								log_id(cell), log_id(cell->type), log_id(module), log_signal(new_ff.sig_d).c_str(), log_signal(new_ff.sig_q).c_str(), log_signal(new_ff.val_srst).c_str());
 					}
 
 					if (remaining_indices.empty()) {
@@ -710,7 +710,7 @@ struct OptDffWorker
 						if (new_cell)
 							dff_cells.push_back(new_cell);
 						log("Adding EN signal on %s (%s) from module %s (D = %s, Q = %s).\n",
-								log_id(cell), log_id(cell->type), log_id(module), log_signal(new_ff.sig_d), log_signal(new_ff.sig_q));
+								log_id(cell), log_id(cell->type), log_id(module), log_signal(new_ff.sig_d).c_str(), log_signal(new_ff.sig_q).c_str());
 					}
 
 					if (remaining_indices.empty()) {

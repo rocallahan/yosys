@@ -460,7 +460,7 @@ struct BufnormPass : public Pass {
 				log("  %s %s for %s -> %s\n",
 						chain_this_wire ? "chaining" : "adding",
 						conn_mode ? "connection" : "buffer",
-						log_signal(insig), log_signal(outsig));
+						log_signal(insig).c_str(), log_signal(outsig).c_str());
 
 				if (conn_mode) {
 					if (bits_mode) {
@@ -502,7 +502,7 @@ struct BufnormPass : public Pass {
 
 					if (conn.second != newsig) {
 						log("  fixing input signal on cell %s port %s: %s\n",
-								log_id(cell), log_id(conn.first), log_signal(newsig));
+								log_id(cell), log_id(conn.first), log_signal(newsig).c_str());
 						cell->setPort(conn.first, newsig);
 						count_updated_cellports++;
 					}

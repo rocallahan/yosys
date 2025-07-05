@@ -2813,7 +2813,7 @@ void RTLIL::Module::connect(const RTLIL::SigSig &conn)
 	}
 
 	if (yosys_xtrace) {
-		log("#X# Connect (SigSig) in %s: %s = %s (%d bits)\n", log_id(this), log_signal(conn.first), log_signal(conn.second), GetSize(conn.first));
+		log("#X# Connect (SigSig) in %s: %s = %s (%d bits)\n", log_id(this), log_signal(conn.first).c_str(), log_signal(conn.second).c_str(), GetSize(conn.first));
 		log_backtrace("-X- ", yosys_xtrace-1);
 	}
 
@@ -2838,7 +2838,7 @@ void RTLIL::Module::new_connections(const std::vector<RTLIL::SigSig> &new_conn)
 	if (yosys_xtrace) {
 		log("#X# New connections vector in %s:\n", log_id(this));
 		for (auto &conn: new_conn)
-			log("#X#    %s = %s (%d bits)\n", log_signal(conn.first), log_signal(conn.second), GetSize(conn.first));
+			log("#X#    %s = %s (%d bits)\n", log_signal(conn.first).c_str(), log_signal(conn.second).c_str(), GetSize(conn.first));
 		log_backtrace("-X- ", yosys_xtrace-1);
 	}
 
@@ -4148,7 +4148,7 @@ void RTLIL::Cell::setPort(const RTLIL::IdString& portname, RTLIL::SigSpec signal
 			mon->notify_connect(this, conn_it->first, conn_it->second, signal);
 
 	if (yosys_xtrace) {
-		log("#X# Connect %s.%s.%s = %s (%d)\n", log_id(this->module), log_id(this), log_id(portname), log_signal(signal), GetSize(signal));
+		log("#X# Connect %s.%s.%s = %s (%d)\n", log_id(this->module), log_id(this), log_id(portname), log_signal(signal).c_str(), GetSize(signal));
 		log_backtrace("-X- ", yosys_xtrace-1);
 	}
 

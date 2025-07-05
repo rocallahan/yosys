@@ -398,7 +398,7 @@ struct OptMuxtreeWorker
 
 		if (did_something) {
 			log("      Replacing known input bits on port %s of cell %s: %s -> %s\n", log_id(portname),
-					log_id(muxinfo.cell), log_signal(muxinfo.cell->getPort(portname)), log_signal(sig));
+					log_id(muxinfo.cell), log_signal(muxinfo.cell->getPort(portname)).c_str(), log_signal(sig).c_str());
 			muxinfo.cell->setPort(portname, sig);
 		}
 	}

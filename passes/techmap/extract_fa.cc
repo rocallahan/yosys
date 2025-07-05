@@ -185,7 +185,7 @@ struct ExtractFaWorker
 				ce.pop();
 			}
 
-			// log("%04d %s %s -> %s\n", bindec(func), log_signal(A), log_signal(B), log_signal(root));
+			// log("%04d %s %s -> %s\n", bindec(func), log_signal(A).c_str(), log_signal(B).c_str(), log_signal(root).c_str());
 
 			if (func == xor2_func || func == xnor2_func)
 				xorxnor2.insert(tuple<SigBit, SigBit>(A, B));
@@ -227,7 +227,7 @@ struct ExtractFaWorker
 				ce.pop();
 			}
 
-			// log("%08d %s %s %s -> %s\n", bindec(func), log_signal(A), log_signal(B), log_signal(C), log_signal(root));
+			// log("%08d %s %s %s -> %s\n", bindec(func), log_signal(A).c_str(), log_signal(B).c_str(), log_signal(C).c_str(), log_signal(root).c_str());
 
 			if (func == xor3_func || func == xnor3_func)
 				xorxnor3.insert(tuple<SigBit, SigBit, SigBit>(A, B, C));
@@ -242,9 +242,9 @@ struct ExtractFaWorker
 		if (cache.count(leaves))
 			return;
 
-		// log("%*s[%d] %s:", 20-maxdepth, "", maxdepth, log_signal(root));
+		// log("%*s[%d] %s:", 20-maxdepth, "", maxdepth, log_signal(root).c_str());
 		// for (auto bit : leaves)
-		// 	log(" %s", log_signal(bit));
+		// 	log(" %s", log_signal(bit).c_str());
 		// log("\n");
 
 		cache.insert(leaves);
@@ -301,7 +301,7 @@ struct ExtractFaWorker
 			pool<pool<SigBit>> cache;
 
 			if (config.verbose)
-				log("  checking %s\n", log_signal(it.first));
+				log("  checking %s\n", log_signal(it.first).c_str());
 
 			count_func2 = 0;
 			count_func3 = 0;
@@ -321,7 +321,7 @@ struct ExtractFaWorker
 			SigBit B = get<1>(key);
 			SigBit C = get<2>(key);
 
-			log("  3-Input XOR/XNOR %s %s %s:\n", log_signal(A), log_signal(B), log_signal(C));
+			log("  3-Input XOR/XNOR %s %s %s:\n", log_signal(A).c_str(), log_signal(B).c_str(), log_signal(C).c_str());
 
 			for (auto &it : func3.at(key))
 			{
@@ -330,7 +330,7 @@ struct ExtractFaWorker
 
 				log("      %08d ->", bindec(it.first));
 				for (auto bit : it.second)
-					log(" %s", log_signal(bit));
+					log(" %s", log_signal(bit).c_str());
 				log("\n");
 			}
 
@@ -364,7 +364,7 @@ struct ExtractFaWorker
 
 				log("      %08d ->", bindec(func));
 				for (auto bit : func3.at(key).at(func))
-					log(" %s", log_signal(bit));
+					log(" %s", log_signal(bit).c_str());
 				log("\n");
 
 				int fakey = 0;
@@ -437,7 +437,7 @@ struct ExtractFaWorker
 			SigBit A = get<0>(key);
 			SigBit B = get<1>(key);
 
-			log("  2-Input XOR/XNOR %s %s:\n", log_signal(A), log_signal(B));
+			log("  2-Input XOR/XNOR %s %s:\n", log_signal(A).c_str(), log_signal(B).c_str());
 
 			for (auto &it : func2.at(key))
 			{
@@ -446,7 +446,7 @@ struct ExtractFaWorker
 
 				log("    %04d ->", bindec(it.first));
 				for (auto bit : it.second)
-					log(" %s", log_signal(bit));
+					log(" %s", log_signal(bit).c_str());
 				log("\n");
 			}
 
@@ -472,7 +472,7 @@ struct ExtractFaWorker
 
 				log("      %04d ->", bindec(func));
 				for (auto bit : func2.at(key).at(func))
-					log(" %s", log_signal(bit));
+					log(" %s", log_signal(bit).c_str());
 				log("\n");
 
 				int fakey = 0;

@@ -1508,7 +1508,7 @@ RTLIL::SigSpec AstNode::genRTLIL(int width_hint, bool sign_hint)
 			}
 
 			RTLIL::SigSpec sig = realAsConst(width_hint);
-			log_file_warning(filename, location.first_line, "converting real value %e to binary %s.\n", realvalue, log_signal(sig));
+			log_file_warning(filename, location.first_line, "converting real value %e to binary %s.\n", realvalue, log_signal(sig).c_str());
 			return sig;
 		}
 
@@ -2070,8 +2070,8 @@ RTLIL::SigSpec AstNode::genRTLIL(int width_hint, bool sign_hint)
 					}
 				log_file_warning(filename, location.first_line, "Ignoring assignment to constant bits:\n"
 						"    old assignment: %s = %s\n    new assignment: %s = %s.\n",
-						log_signal(left), log_signal(right),
-						log_signal(new_left), log_signal(new_right));
+						log_signal(left).c_str(), log_signal(right).c_str(),
+						log_signal(new_left).c_str(), log_signal(new_right).c_str());
 				left = new_left;
 				right = new_right;
 			}

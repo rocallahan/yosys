@@ -324,7 +324,7 @@ struct OptMergeWorker
 						if (cell->output(it.first)) {
 							RTLIL::SigSpec other_sig = other_cell->getPort(it.first);
 							log_debug("    Redirecting output %s: %s = %s\n", it.first.c_str(),
-									log_signal(it.second), log_signal(other_sig));
+									log_signal(it.second).c_str(), log_signal(other_sig).c_str());
 							Const init = initvals(other_sig);
 							initvals.remove_init(it.second);
 							initvals.remove_init(other_sig);

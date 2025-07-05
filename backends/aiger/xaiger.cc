@@ -89,7 +89,7 @@ struct XAigerWriter
 					if (report_bit.is_wire() && report_bit.wire->name.isPublic())
 						break;
 				}
-				log_error("Found combinatorial logic loop while processing signal %s.\n", log_signal(report_bit));
+				log_error("Found combinatorial logic loop while processing signal %s.\n", log_signal(report_bit).c_str());
 			}
 			next_loop_check *= 2;
 		}
@@ -178,7 +178,7 @@ struct XAigerWriter
 					if (s != State::Sx) {
 						auto r = init_map.insert(std::make_pair(bit, it->second[i]));
 						if (!r.second && r.first->second != it->second[i])
-							log_error("Bit '%s' has a conflicting (* init *) value.\n", log_signal(bit));
+							log_error("Bit '%s' has a conflicting (* init *) value.\n", log_signal(bit).c_str());
 					}
 				}
 			}
@@ -612,7 +612,7 @@ struct XAigerWriter
 				write_r_buffer(mergeability);
 
 				State init = init_map.at(q, State::Sx);
-				log_debug("Cell '%s' (type %s) has (* init *) value '%s'.\n", log_id(cell), log_id(cell->type), log_signal(init));
+				log_debug("Cell '%s' (type %s) has (* init *) value '%s'.\n", log_id(cell), log_id(cell->type), log_signal(init).c_str());
 				if (init == State::S1)
 					write_s_buffer(1);
 				else if (init == State::S0)

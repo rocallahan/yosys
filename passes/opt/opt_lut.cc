@@ -174,7 +174,7 @@ struct OptLutWorker
 						if (sigmap(lut_input[dlogic_conn.first]) != sigmap(lut_dlogic.second->getPort(dlogic_conn.second)[0]))
 						{
 							log_debug("  LUT has illegal connection to %s cell %s.%s.\n", lut_dlogic.second->type.c_str(), log_id(module), log_id(lut_dlogic.second));
-							log_debug("    LUT input A[%d] (wire %s) not connected to %s port %s (wire %s).\n", dlogic_conn.first, log_signal(lut_input[dlogic_conn.first]), lut_dlogic.second->type.c_str(), dlogic_conn.second.c_str(), log_signal(lut_dlogic.second->getPort(dlogic_conn.second)));
+							log_debug("    LUT input A[%d] (wire %s) not connected to %s port %s (wire %s).\n", dlogic_conn.first, log_signal(lut_input[dlogic_conn.first]).c_str(), lut_dlogic.second->type.c_str(), dlogic_conn.second.c_str(), log_signal(lut_dlogic.second->getPort(dlogic_conn.second)).c_str());
 							legal = false;
 							break;
 						}
@@ -272,7 +272,7 @@ struct OptLutWorker
 					value = State::S1;
 				}
 				if (input_match != -1) {
-					log_debug("  Cell evaluates signal %s.\n", log_signal(lut_inputs[input_match]));
+					log_debug("  Cell evaluates signal %s.\n", log_signal(lut_inputs[input_match]).c_str());
 					value = lut_inputs[input_match];
 				}
 
@@ -468,7 +468,7 @@ struct OptLutWorker
 						if (input_unused && lutR_unique.size())
 						{
 							SigBit new_input = lutR_unique.pop();
-							log_debug("    Connecting input %d as %s.\n", i, log_signal(new_input));
+							log_debug("    Connecting input %d as %s.\n", i, log_signal(new_input).c_str());
 							lutM_new_inputs.push_back(new_input);
 						}
 						else if (sigmap(lutM_input[i]) == lutA_output)
@@ -478,7 +478,7 @@ struct OptLutWorker
 						}
 						else
 						{
-							log_debug("    Leaving input %d as %s.\n", i, log_signal(lutM_input[i]));
+							log_debug("    Leaving input %d as %s.\n", i, log_signal(lutM_input[i]).c_str());
 							lutM_new_inputs.push_back(lutM_input[i]);
 						}
 					}

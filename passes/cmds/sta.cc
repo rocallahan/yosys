@@ -215,11 +215,11 @@ struct StaWorker
 		while (jt != data.end()) {
 			int arrival = b.wire->get_intvec_attribute(ID::sta_arrival)[b.offset];
 			if (jt->second.driver) {
-				log("           %s\n", log_signal(b));
+				log("           %s\n", log_signal(b).c_str());
 				log("  %6d %s (%s.%s->%s)\n", arrival, log_id(jt->second.driver), log_id(jt->second.driver->type), log_id(jt->second.src_port), log_id(jt->second.dst_port));
 			}
 			else if (b.wire->port_input)
-				log("  %6d   %s (%s)\n", arrival, log_signal(b), "<primary input>");
+				log("  %6d   %s (%s)\n", arrival, log_signal(b).c_str(), "<primary input>");
 			else
 				log_abort();
 			b = jt->second.backtrack;
@@ -233,13 +233,13 @@ struct StaWorker
 				continue;
 
 			if (!b.wire->attributes.count(ID::sta_arrival)) {
-				log_warning("Endpoint %s.%s has no (* sta_arrival *) value.\n", log_id(module), log_signal(b));
+				log_warning("Endpoint %s.%s has no (* sta_arrival *) value.\n", log_id(module), log_signal(b).c_str());
 				continue;
 			}
 
 			auto arrival = b.wire->get_intvec_attribute(ID::sta_arrival)[b.offset];
 			if (arrival < 0) {
-				log_warning("Endpoint %s.%s has no (* sta_arrival *) value.\n", log_id(module), log_signal(b));
+				log_warning("Endpoint %s.%s has no (* sta_arrival *) value.\n", log_id(module), log_signal(b).c_str());
 				continue;
 			}
 			arrival += i.second.required;

@@ -63,7 +63,7 @@ struct Test2Pass : public Pass {
         log("%d %d %d\n", sigmap(a) == sigmap(x), sigmap(x) == sigmap(y),
                           sigmap(y) == sigmap(a)); // will print "1 1 1"
 
-        log("Mapped signal x: %s\n", log_signal(sigmap(x)));
+        log("Mapped signal x: %s\n", log_signal(sigmap(x)).c_str());
 
         log_header(design, "Doing important stuff!\n");
         log_push();

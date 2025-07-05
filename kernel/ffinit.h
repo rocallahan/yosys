@@ -53,8 +53,8 @@ struct FfInitVals
 				if (initbits.count(bit)) {
 					if (initbits.at(bit).first != val)
 						log_error("Conflicting init values for signal %s (%s = %s != %s).\n",
-								log_signal(bit), log_signal(SigBit(wire, i)),
-								log_signal(val), log_signal(initbits.at(bit).first));
+								log_signal(bit).c_str(), log_signal(SigBit(wire, i)).c_str(),
+								log_signal(val).c_str(), log_signal(initbits.at(bit).first).c_str());
 					continue;
 				}
 

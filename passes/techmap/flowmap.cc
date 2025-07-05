@@ -204,9 +204,9 @@ struct FlowGraph
 	void dump_dot_graph(string filename)
 	{
 		auto node_style = [&](RTLIL::SigBit node) {
-			string label = (node == source) ? "(source)" : log_signal(node);
+			string label = (node == source) ? "(source)" : log_signal(node).c_str();
 			for (auto collapsed_node : collapsed[node])
-				label += stringf(" %s", log_signal(collapsed_node));
+				label += stringf(" %s", log_signal(collapsed_node).c_str());
 			int flow = node_flow[node];
 			if (node != source && node != sink)
 				label += stringf("\n%d/%d", flow, MAX_NODE_FLOW);
@@ -491,7 +491,7 @@ struct FlowmapWorker
 			string label = log_signal(node);
 			for (auto collapsed_node : collapsed[node])
 				if (collapsed_node != node)
-					label += stringf(" %s", log_signal(collapsed_node));
+					label += stringf(" %s", log_signal(collapsed_node).c_str());
 			switch (mode)
 			{
 				case GraphMode::Label:
@@ -611,7 +611,7 @@ struct FlowmapWorker
 					if (!bit.wire) continue;
 					auto mapped_bit = sigmap(bit);
 					if (nodes[mapped_bit])
-						log_error("Multiple drivers found for wire %s.\n", log_signal(mapped_bit));
+						log_error("Multiple drivers found for wire %s.\n", log_signal(mapped_bit).c_str());
 					nodes.insert(mapped_bit);
 					node_origins[mapped_bit] = ModIndex::PortInfo(cell, conn.first, offset);
 					fanout.insert(mapped_bit);
@@ -703,7 +703,7 @@ struct FlowmapWorker
 			if (debug)
 			{
 				debug_num++;
-				log("Examining subgraph %d rooted in %s.\n", debug_num, log_signal(sink));
+				log("Examining subgraph %d rooted in %s.\n", debug_num, log_signal(sink).c_str());
 			}
 
 			pool<RTLIL::SigBit> subgraph = find_subgraph(sink);
@@ -752,11 +752,11 @@ struct FlowmapWorker
 				log("  Dumped flow graph to `flowmap-%d-flow.dot`.\n", debug_num);
 				log("    LUT inputs:");
 				for (auto k_node : k)
-					log(" %s", log_signal(k_node));
+					log(" %s", log_signal(k_node).c_str());
 				log(".\n");
 				log("    LUT packed gates:");
 				for (auto xi_node : xi)
-					log(" %s", log_signal(xi_node));
+					log(" %s", log_signal(xi_node).c_str());
 				log(".\n");
 			}
 
@@ -1039,7 +1039,7 @@ struct FlowmapWorker
 				continue;
 
 			if (debug_relax)
-				log("  Computing potentials for LUT %s.\n", log_signal(lut));
+				log("  Computing potentials for LUT %s.\n", log_signal(lut).c_str());
 
 			for (auto lut_gate : lut_gates[lut])
 			{
@@ -1047,7 +1047,7 @@ struct FlowmapWorker
 					continue;
 
 				if (debug_relax)
-					log("    Considering breaking node %s.\n", log_signal(lut_gate));
+					log("    Considering breaking node %s.\n", log_signal(lut_gate).c_str());
 
 				int r_ex, r_im, r_slk;
 
@@ -1077,14 +1077,14 @@ struct FlowmapWorker
 					{
 						log("      Breaking eliminates LUT inputs");
 						for (auto gate_input : gate_inputs)
-							log(" %s", log_signal(gate_input));
+							log(" %s", log_signal(gate_input).c_str());
 						log(".\n");
 					}
 					if (!elim_fanin_luts.empty())
 					{
 						log("      Breaking eliminates fan-in LUTs");
 						for (auto elim_fanin_lut : elim_fanin_luts)
-							log(" %s", log_signal(elim_fanin_lut));
+							log(" %s", log_signal(elim_fanin_lut).c_str());
 						log(".\n");
 					}
 				}
@@ -1144,7 +1144,7 @@ struct FlowmapWorker
 					{
 						if (debug_relax)
 							log("      Breaking may allow merging %s and %s.\n",
-							    log_signal(maybe_mergeable_pair.first), log_signal(maybe_mergeable_pair.second));
+							    log_signal(maybe_mergeable_pair.first).c_str(), log_signal(maybe_mergeable_pair.second).c_str());
 						r_im++;
 					}
 				}
@@ -1178,7 +1178,7 @@ struct FlowmapWorker
 							log("      Breaking decreases slack of outputs");
 							for (auto lut_critical_output : lut_critical_outputs.at(lut))
 							{
-								log(" %s", log_signal(lut_critical_output));
+								log(" %s", log_signal(lut_critical_output).c_str());
 								log_assert(lut_slacks[lut_critical_output] > 0);
 							}
 							log(".\n");
@@ -1190,7 +1190,7 @@ struct FlowmapWorker
 				int p = 100 * (r_alpha * r_ex + r_beta * r_im + r_gamma) / (r_slk + 1);
 				if (debug_relax)
 					log("    Potential for breaking node %s: %d (Rex=%d, Rim=%d, Rslk=%d).\n",
-					    log_signal(lut_gate), p, r_ex, r_im, r_slk);
+					    log_signal(lut_gate).c_str(), p, r_ex, r_im, r_slk);
 				potentials[lut][lut_gate] = p;
 			}
 		}
@@ -1246,10 +1246,10 @@ struct FlowmapWorker
 				}
 			}
 			log("  Breaking LUT %s to %s LUT %s (potential %d).\n",
-			    log_signal(breaking_lut), lut_nodes[breaking_gate] ? "reuse" : "extract", log_signal(breaking_gate), best_potential);
+			    log_signal(breaking_lut).c_str(), lut_nodes[breaking_gate] ? "reuse" : "extract", log_signal(breaking_gate).c_str(), best_potential);
 
 			if (debug_relax)
-				log("    Removing breaking gate %s from LUT.\n", log_signal(breaking_gate));
+				log("    Removing breaking gate %s from LUT.\n", log_signal(breaking_gate).c_str());
 			lut_gates[breaking_lut].erase(breaking_gate);
 
 			auto cut_inputs = cut_lut_at_gate(breaking_lut, breaking_gate);
@@ -1267,7 +1267,7 @@ struct FlowmapWorker
 				if (all_gate_preds_elim)
 				{
 					if (debug_relax)
-						log("    Removing gate %s from LUT.\n", log_signal(lut_gate));
+						log("    Removing gate %s from LUT.\n", log_signal(lut_gate).c_str());
 					lut_gates[breaking_lut].erase(lut_gate);
 					for (auto lut_gate_succ : edges_fw[lut_gate])
 						worklist.insert(lut_gate_succ);
@@ -1279,11 +1279,11 @@ struct FlowmapWorker
 			for (auto gate_input : gate_inputs)
 			{
 				if (debug_relax)
-					log("    Removing LUT edge %s -> %s.\n", log_signal(gate_input), log_signal(breaking_lut));
+					log("    Removing LUT edge %s -> %s.\n", log_signal(gate_input).c_str(), log_signal(breaking_lut).c_str());
 				remove_lut_edge(gate_input, breaking_lut, &directly_affected_nodes);
 			}
 			if (debug_relax)
-				log("    Adding LUT edge %s -> %s.\n", log_signal(breaking_gate), log_signal(breaking_lut));
+				log("    Adding LUT edge %s -> %s.\n", log_signal(breaking_gate).c_str(), log_signal(breaking_lut).c_str());
 			add_lut_edge(breaking_gate, breaking_lut, &directly_affected_nodes);
 
 			if (debug_relax)
@@ -1297,7 +1297,7 @@ struct FlowmapWorker
 				lut_slacks[node] = depth_bound - (lut_depths[node] + lut_altitudes[node]);
 				log_assert(lut_slacks[node] >= 0);
 				if (debug_relax)
-					log("    LUT %s now has depth %d and slack %d.\n", log_signal(node), lut_depths[node], lut_slacks[node]);
+					log("    LUT %s now has depth %d and slack %d.\n", log_signal(node).c_str(), lut_depths[node], lut_slacks[node]);
 			}
 
 			worklist = indirectly_affected_nodes;
@@ -1356,14 +1356,14 @@ struct FlowmapWorker
 				auto origin = node_origins[node];
 				if (origin.cell->getPort(origin.port).size() == 1)
 					log("Packing %s.%s.%s (%s).\n",
-					    log_id(module), log_id(origin.cell), origin.port.c_str(), log_signal(node));
+					    log_id(module), log_id(origin.cell), origin.port.c_str(), log_signal(node).c_str());
 				else
 					log("Packing %s.%s.%s [%d] (%s).\n",
-					    log_id(module), log_id(origin.cell), origin.port.c_str(), origin.offset, log_signal(node));
+					    log_id(module), log_id(origin.cell), origin.port.c_str(), origin.offset, log_signal(node).c_str());
 			}
 			else
 			{
-				log("Packing %s.%s.\n", log_id(module), log_signal(node));
+				log("Packing %s.%s.\n", log_id(module), log_signal(node).c_str());
 			}
 
 			for (auto gate_node : lut_gates[node])
@@ -1376,10 +1376,10 @@ struct FlowmapWorker
 				auto gate_origin = node_origins[gate_node];
 				if (gate_origin.cell->getPort(gate_origin.port).size() == 1)
 					log("  Packing %s.%s.%s (%s).\n",
-					    log_id(module), log_id(gate_origin.cell), gate_origin.port.c_str(), log_signal(gate_node));
+					    log_id(module), log_id(gate_origin.cell), gate_origin.port.c_str(), log_signal(gate_node).c_str());
 				else
 					log("  Packing %s.%s.%s [%d] (%s).\n",
-					    log_id(module), log_id(gate_origin.cell), gate_origin.port.c_str(), gate_origin.offset, log_signal(gate_node));
+					    log_id(module), log_id(gate_origin.cell), gate_origin.port.c_str(), gate_origin.offset, log_signal(gate_node).c_str());
 			}
 
 			vector<RTLIL::SigBit> input_nodes(lut_edges_bw[node].begin(), lut_edges_bw[node].end());
@@ -1396,9 +1396,9 @@ struct FlowmapWorker
 				{
 					string env;
 					for (auto input_node : input_nodes)
-						env += stringf("  %s = %s\n", log_signal(input_node), log_signal(ce.values_map(input_node)));
+						env += stringf("  %s = %s\n", log_signal(input_node).c_str(), log_signal(ce.values_map(input_node)).c_str());
 					log_error("Cannot evaluate %s because %s is not defined.\nEvaluation environment:\n%s",
-					          log_signal(node), log_signal(undef), env.c_str());
+					          log_signal(node).c_str(), log_signal(undef).c_str(), env.c_str());
 				}
 
 				lut_table.bits()[i] = value.as_bool() ? State::S1 : State::S0;

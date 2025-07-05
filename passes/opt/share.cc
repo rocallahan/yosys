@@ -1275,7 +1275,7 @@ struct ShareWorker
 				continue;
 			}
 
-			log("    Found %d activation_patterns using ctrl signal %s.\n", GetSize(cell_activation_patterns), log_signal(cell_activation_signals));
+			log("    Found %d activation_patterns using ctrl signal %s.\n", GetSize(cell_activation_patterns), log_signal(cell_activation_signals).c_str());
 
 			std::vector<RTLIL::Cell*> candidates;
 			find_shareable_partners(candidates, cell);
@@ -1311,7 +1311,7 @@ struct ShareWorker
 				}
 
 				log("      Found %d activation_patterns using ctrl signal %s.\n",
-						GetSize(other_cell_activation_patterns), log_signal(other_cell_activation_signals));
+						GetSize(other_cell_activation_patterns), log_signal(other_cell_activation_signals).c_str());
 
 				const pool<RTLIL::SigBit> &cell_forbidden_controls = find_forbidden_controls(cell);
 				const pool<RTLIL::SigBit> &other_cell_forbidden_controls = find_forbidden_controls(other_cell);
@@ -1321,7 +1321,7 @@ struct ShareWorker
 				union_forbidden_controls.insert(other_cell_forbidden_controls.begin(), other_cell_forbidden_controls.end());
 
 				if (!union_forbidden_controls.empty())
-					log("      Forbidden control signals for this pair of cells: %s\n", log_signal(union_forbidden_controls));
+					log("      Forbidden control signals for this pair of cells: %s\n", log_signal(union_forbidden_controls).c_str());
 
 				pool<ssc_pair_t> filtered_cell_activation_patterns;
 				pool<ssc_pair_t> filtered_other_cell_activation_patterns;
@@ -1344,13 +1344,13 @@ struct ShareWorker
 				RTLIL::SigSpec all_ctrl_signals;
 
 				for (auto &p : filtered_cell_activation_patterns) {
-					log("      Activation pattern for cell %s: %s = %s\n", log_id(cell), log_signal(p.first), log_signal(p.second));
+					log("      Activation pattern for cell %s: %s = %s\n", log_id(cell), log_signal(p.first).c_str(), log_signal(p.second).c_str());
 					cell_active.push_back(qcsat.ez->vec_eq(qcsat.importSig(p.first), qcsat.importSig(p.second)));
 					all_ctrl_signals.append(p.first);
 				}
 
 				for (auto &p : filtered_other_cell_activation_patterns) {
-					log("      Activation pattern for cell %s: %s = %s\n", log_id(other_cell), log_signal(p.first), log_signal(p.second));
+					log("      Activation pattern for cell %s: %s = %s\n", log_id(other_cell), log_signal(p.first).c_str(), log_signal(p.second).c_str());
 					other_cell_active.push_back(qcsat.ez->vec_eq(qcsat.importSig(p.first), qcsat.importSig(p.second)));
 					all_ctrl_signals.append(p.first);
 				}
@@ -1390,7 +1390,7 @@ struct ShareWorker
 
 					if (qcsat.ez->solve(sat_model, sat_model_values)) {
 						log("      According to the SAT solver this pair of cells can not be shared.\n");
-						log("      Model from SAT solver: %s = %d'", log_signal(all_ctrl_signals), GetSize(sat_model_values));
+						log("      Model from SAT solver: %s = %d'", log_signal(all_ctrl_signals).c_str(), GetSize(sat_model_values));
 						for (int i = GetSize(sat_model_values)-1; i >= 0; i--)
 							log("%c", sat_model_values[i] ? '1' : '0');
 						log("\n");
@@ -1403,10 +1403,10 @@ struct ShareWorker
 
 					if (restrict_activation_patterns(optimized_cell_activation_patterns, optimized_other_cell_activation_patterns)) {
 						for (auto &p : optimized_cell_activation_patterns)
-							log("      Simplified activation pattern for cell %s: %s = %s\n", log_id(cell), log_signal(p.first), log_signal(p.second));
+							log("      Simplified activation pattern for cell %s: %s = %s\n", log_id(cell), log_signal(p.first).c_str(), log_signal(p.second).c_str());
 
 						for (auto &p : optimized_other_cell_activation_patterns)
-							log("      Simplified activation pattern for cell %s: %s = %s\n", log_id(other_cell), log_signal(p.first), log_signal(p.second));
+							log("      Simplified activation pattern for cell %s: %s = %s\n", log_id(other_cell), log_signal(p.first).c_str(), log_signal(p.second).c_str());
 					}
 				}
 
@@ -1436,11 +1436,11 @@ struct ShareWorker
 				if (cell_select_score <= other_cell_select_score) {
 					RTLIL::SigSpec act = make_cell_activation_logic(optimized_cell_activation_patterns, supercell_aux);
 					supercell = make_supercell(cell, other_cell, act, supercell_aux);
-					log("      Activation signal for %s: %s\n", log_id(cell), log_signal(act));
+					log("      Activation signal for %s: %s\n", log_id(cell), log_signal(act).c_str());
 				} else {
 					RTLIL::SigSpec act = make_cell_activation_logic(optimized_other_cell_activation_patterns, supercell_aux);
 					supercell = make_supercell(other_cell, cell, act, supercell_aux);
-					log("      Activation signal for %s: %s\n", log_id(other_cell), log_signal(act));
+					log("      Activation signal for %s: %s\n", log_id(other_cell), log_signal(act).c_str());
 				}
 
 				log("      New cell: %s (%s)\n", log_id(supercell), log_id(supercell->type));

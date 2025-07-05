@@ -168,7 +168,7 @@ void microchip_dsp_pack(microchip_dsp_pm &pm)
 			st.ffP->connections_.at(ID::Q).replace(st.sigP, pm.module->addWire(NEW_ID, GetSize(st.sigP)));
 		}
 
-		log("  clock: %s (%s)\n", log_signal(st.clock), "posedge");
+		log("  clock: %s (%s)\n", log_signal(st.clock).c_str(), "posedge");
 
 		if (st.ffA)
 			log(" \t ffA:%s\n", log_id(st.ffA));
@@ -261,7 +261,7 @@ void microchip_dsp_packC(microchip_dsp_CREG_pm &pm)
 			cell->setPort(ID::C, C);
 		}
 
-		log("  clock: %s (%s)", log_signal(st.clock), "posedge");
+		log("  clock: %s (%s)", log_signal(st.clock).c_str(), "posedge");
 
 		if (st.ffC)
 			log(" ffC:%s", log_id(st.ffC));

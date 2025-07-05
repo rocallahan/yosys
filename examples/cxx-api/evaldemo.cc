@@ -44,9 +44,9 @@ struct EvalDemoPass : public Pass
 			ce.set(wire_a, Const(v, GetSize(wire_a)));
 			SigSpec sig_y = wire_y, sig_undef;
 			if (ce.eval(sig_y, sig_undef))
-				log("Eval results for A=%d: Y=%s\n", v, log_signal(sig_y));
+				log("Eval results for A=%d: Y=%s\n", v, log_signal(sig_y).c_str());
 			else
-				log("Eval failed for A=%d: Missing value for %s\n", v, log_signal(sig_undef));
+				log("Eval failed for A=%d: Missing value for %s\n", v, log_signal(sig_undef).c_str());
 			ce.pop();
 		}
 	}

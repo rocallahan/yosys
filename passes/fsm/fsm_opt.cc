@@ -55,7 +55,7 @@ struct FsmOpt
 
 			for (int i = 0; i < GetSize(fsm_data.state_table); i++) {
 				if (unreachable_states.count(i)) {
-					log("  Removing unreachable state %s.\n", log_signal(fsm_data.state_table[i]));
+					log("  Removing unreachable state %s.\n", log_signal(fsm_data.state_table[i]).c_str());
 					continue;
 				}
 				old_to_new_state[i] = GetSize(new_state_table);
@@ -119,7 +119,7 @@ struct FsmOpt
 
 		for (int i = int(ctrl_in_used.size())-1; i >= 0; i--) {
 			if (!ctrl_in_used[i]) {
-				log("  Removing unused input signal %s.\n", log_signal(cell->getPort(ID::CTRL_IN).extract(i, 1)));
+				log("  Removing unused input signal %s.\n", log_signal(cell->getPort(ID::CTRL_IN).extract(i, 1)).c_str());
 				for (auto &tr : new_transition_table) {
 					RTLIL::SigSpec tmp(tr.ctrl_in);
 					tmp.remove(i, 1);
@@ -141,7 +141,7 @@ struct FsmOpt
 		for (int i = 0; i < fsm_data.num_outputs; i++) {
 			RTLIL::SigSpec sig = cell->getPort(ID::CTRL_OUT).extract(i, 1);
 			if (signal_is_unused(sig)) {
-				log("  Removing unused output signal %s.\n", log_signal(sig));
+				log("  Removing unused output signal %s.\n", log_signal(sig).c_str());
 				RTLIL::SigSpec new_ctrl_out = cell->getPort(ID::CTRL_OUT);
 				new_ctrl_out.remove(i, 1);
 				cell->setPort(ID::CTRL_OUT, new_ctrl_out);
@@ -164,7 +164,7 @@ struct FsmOpt
 		for (int j = i+1; j < ctrl_in.size(); j++)
 			if (ctrl_in.extract(i, 1) == ctrl_in.extract(j, 1))
 			{
-				log("  Optimize handling of signal %s that is connected to inputs %d and %d.\n", log_signal(ctrl_in.extract(i, 1)), i, j);
+				log("  Optimize handling of signal %s that is connected to inputs %d and %d.\n", log_signal(ctrl_in.extract(i, 1)).c_str(), i, j);
 				std::vector<FsmData::transition_t> new_transition_table;
 
 				for (auto tr : fsm_data.transition_table)
@@ -202,7 +202,7 @@ struct FsmOpt
 		for (int i = 0; i < ctrl_in.size(); i++)
 			if (ctrl_in.extract(i, 1) == ctrl_out.extract(j, 1))
 			{
-				log("  Optimize handling of signal %s that is connected to input %d and output %d.\n", log_signal(ctrl_in.extract(i, 1)), i, j);
+				log("  Optimize handling of signal %s that is connected to input %d and output %d.\n", log_signal(ctrl_in.extract(i, 1)).c_str(), i, j);
 				std::vector<FsmData::transition_t> new_transition_table;
 
 				for (auto tr : fsm_data.transition_table)
@@ -245,8 +245,8 @@ struct FsmOpt
 				other_pattern.bits()[bit] = RTLIL::State::S1;
 
 			if (set.count(other_pattern) > 0) {
-				log("  Merging pattern %s and %s from group (%d %d %s).\n", log_signal(pattern), log_signal(other_pattern),
-						tr.state_in, tr.state_out, log_signal(tr.ctrl_out));
+				log("  Merging pattern %s and %s from group (%d %d %s).\n", log_signal(pattern).c_str(), log_signal(other_pattern).c_str(),
+						tr.state_in, tr.state_out, log_signal(tr.ctrl_out).c_str());
 				other_pattern.bits()[bit] = RTLIL::State::Sa;
 				new_set.insert(other_pattern);
 				did_something = true;

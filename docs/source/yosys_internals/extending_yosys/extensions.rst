@@ -192,11 +192,11 @@ Printing log messages
 The ``log()`` function is a ``printf()``-like function that can be used to
 create log messages.
 
-Use ``log_signal()`` to create a C-string for a SigSpec object:
+Use ``log_signal()`` to create a ``std::string`` for a SigSpec object:
 
 .. code:: C++
 
-    log("Mapped signal x: %s\n", log_signal(sigmap(x)));
+    log("Mapped signal x: %s\n", log_signal(sigmap(x)).c_str());
 
 The pointer returned by ``log_signal()`` is automatically freed by the log
 framework at a later time.

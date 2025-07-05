@@ -289,7 +289,7 @@ unsigned int abstract_value(Module* mod, EnableLogic enable, const std::vector<S
 			for (auto bit : SigSpec(wire))
 				if (selected_reps.count(sigmap(bit))) {
 					log_debug("Abstracting value for module input port bit %s in module %s due to selections:\n",
-						log_signal(bit), log_id(mod));
+						log_signal(bit).c_str(), log_id(mod));
 					explain_selections(selected_reps.at(sigmap(bit)));
 					offsets_to_abstract.insert(bit.offset);
 				}
@@ -308,7 +308,7 @@ unsigned int abstract_init(Module* mod, const std::vector<Slice> &slices) {
 	dict<SigBit, std::vector<SelReason>> selected_reps = gather_selected_reps(mod, slices, sigmap);
 	initvals.set(&sigmap, mod);
 	for (auto bit : selected_reps) {
-		log_debug("Removing init bit on %s due to selections:\n", log_signal(bit.first));
+		log_debug("Removing init bit on %s due to selections:\n", log_signal(bit.first).c_str());
 		explain_selections(bit.second);
 		initvals.remove_init(bit.first);
 		changed++;

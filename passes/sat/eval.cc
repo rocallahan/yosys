@@ -63,10 +63,10 @@ struct BruteForceEquivChecker
 
 		if (!ce1.eval(sig1, undef1))
 			log("Failed ConstEval of module 1 outputs at signal %s (input: %s = %s).\n",
-					log_signal(undef1), log_signal(mod1_inputs), log_signal(inputs));
+					log_signal(undef1).c_str(), log_signal(mod1_inputs).c_str(), log_signal(inputs).c_str());
 		if (!ce2.eval(sig2, undef2))
 			log("Failed ConstEval of module 2 outputs at signal %s (input: %s = %s).\n",
-					log_signal(undef2), log_signal(mod1_inputs), log_signal(inputs));
+					log_signal(undef2).c_str(), log_signal(mod1_inputs).c_str(), log_signal(inputs).c_str());
 
 		if (ignore_x_mod1) {
 			for (int i = 0; i < GetSize(sig1); i++)
@@ -76,8 +76,8 @@ struct BruteForceEquivChecker
 
 		if (sig1 != sig2) {
 			log("Found counter-example (ignore_x_mod1 = %s):\n", ignore_x_mod1 ? "active" : "inactive");
-			log("  Module 1:  %s = %s  =>  %s = %s\n", log_signal(mod1_inputs), log_signal(inputs), log_signal(mod1_outputs), log_signal(sig1));
-			log("  Module 2:  %s = %s  =>  %s = %s\n", log_signal(mod2_inputs), log_signal(inputs), log_signal(mod2_outputs), log_signal(sig2));
+			log("  Module 1:  %s = %s  =>  %s = %s\n", log_signal(mod1_inputs).c_str(), log_signal(inputs).c_str(), log_signal(mod1_outputs).c_str(), log_signal(sig1).c_str());
+			log("  Module 2:  %s = %s  =>  %s = %s\n", log_signal(mod2_inputs).c_str(), log_signal(inputs).c_str(), log_signal(mod2_outputs).c_str(), log_signal(sig2).c_str());
 			errors++;
 		}
 
@@ -187,7 +187,7 @@ struct VlogHammerReporter
 					rtl_bits += expected_y[k] == RTLIL::State::Sx ? "x" : expected_y[k] == RTLIL::State::S1 ? "1" : "0";
 				}
 				log_error("Found error in SAT model: y[%d] = %s, should be %s:\n   SAT: %s\n   RTL: %s\n        %*s^\n",
-						int(i), log_signal(solution_bit), log_signal(expected_bit),
+						int(i), log_signal(solution_bit).c_str(), log_signal(expected_bit).c_str(),
 						sat_bits.c_str(), rtl_bits.c_str(), expected_y.size()-i-1, "");
 			}
 		}
@@ -238,7 +238,7 @@ struct VlogHammerReporter
 	{
 		for (int idx = 0; idx < int(patterns.size()); idx++)
 		{
-			log("Creating report for pattern %d: %s\n", idx, log_signal(patterns[idx]));
+			log("Creating report for pattern %d: %s\n", idx, log_signal(patterns[idx]).c_str());
 			std::string input_pattern_list;
 			RTLIL::SigSpec rtl_sig;
 
@@ -275,8 +275,8 @@ struct VlogHammerReporter
 				RTLIL::SigSpec undef;
 
 				while (!ce.eval(sig, undef)) {
-					// log_error("Evaluation of y in module %s failed: sig=%s, undef=%s\n", log_id(module->name), log_signal(sig), log_signal(undef));
-					log_warning("Setting signal %s in module %s to undef.\n", log_signal(undef), log_id(module->name));
+					// log_error("Evaluation of y in module %s failed: sig=%s, undef=%s\n", log_id(module->name), log_signal(sig).c_str(), log_signal(undef).c_str());
+					log_warning("Setting signal %s in module %s to undef.\n", log_signal(undef).c_str(), log_id(module->name));
 					ce.set(undef, RTLIL::Const(RTLIL::State::Sx, undef.size()));
 				}
 
@@ -461,7 +461,7 @@ struct EvalPass : public Pass {
 				log_cmd_error("Right-hand-side set expression `%s' is not constant.\n", it.second.c_str());
 			if (lhs.size() != rhs.size())
 				log_cmd_error("Set expression with different lhs and rhs sizes: %s (%s, %d bits) vs. %s (%s, %d bits)\n",
-						it.first.c_str(), log_signal(lhs), lhs.size(), it.second.c_str(), log_signal(rhs), rhs.size());
+						it.first.c_str(), log_signal(lhs).c_str(), lhs.size(), it.second.c_str(), log_signal(rhs).c_str(), rhs.size());
 			ce.set(lhs, rhs.as_const());
 		}
 
@@ -480,16 +480,16 @@ struct EvalPass : public Pass {
 				value = signal;
 				if (set_undef) {
 					while (!ce.eval(value, undef)) {
-						log("Failed to evaluate signal %s: Missing value for %s. -> setting to undef\n", log_signal(signal), log_signal(undef));
+						log("Failed to evaluate signal %s: Missing value for %s. -> setting to undef\n", log_signal(signal).c_str(), log_signal(undef).c_str());
 						ce.set(undef, RTLIL::Const(RTLIL::State::Sx, undef.size()));
 						undef = RTLIL::SigSpec();
 					}
-					log("Eval result: %s = %s.\n", log_signal(signal), log_signal(value));
+					log("Eval result: %s = %s.\n", log_signal(signal).c_str(), log_signal(value).c_str());
 				} else {
 					if (!ce.eval(value, undef))
-						log("Failed to evaluate signal %s: Missing value for %s.\n", log_signal(signal), log_signal(undef));
+						log("Failed to evaluate signal %s: Missing value for %s.\n", log_signal(signal).c_str(), log_signal(undef).c_str());
 					else
-						log("Eval result: %s = %s.\n", log_signal(signal), log_signal(value));
+						log("Eval result: %s = %s.\n", log_signal(signal).c_str(), log_signal(value).c_str());
 				}
 			}
 		}
@@ -515,10 +515,10 @@ struct EvalPass : public Pass {
 
 			std::vector<std::string> tab_line;
 			for (auto &c : tabsigs.chunks())
-				tab_line.push_back(log_signal(c));
+				tab_line.push_back(log_signal(c).c_str());
 			tab_sep_colidx = tab_line.size();
 			for (auto &c : signal.chunks())
-				tab_line.push_back(log_signal(c));
+				tab_line.push_back(log_signal(c).c_str());
 			tab.push_back(tab_line);
 			tab_line.clear();
 
@@ -532,8 +532,8 @@ struct EvalPass : public Pass {
 				RTLIL::SigSpec this_undef;
 				while (!ce.eval(value, this_undef)) {
 					if (!set_undef) {
-						log("Failed to evaluate signal %s at %s = %s: Missing value for %s.\n", log_signal(signal),
-								log_signal(tabsigs), log_signal(tabvals), log_signal(this_undef));
+						log("Failed to evaluate signal %s at %s = %s: Missing value for %s.\n", log_signal(signal).c_str(),
+								log_signal(tabsigs).c_str(), log_signal(tabvals).c_str(), log_signal(this_undef).c_str());
 						return;
 					}
 					ce.set(this_undef, RTLIL::Const(RTLIL::State::Sx, this_undef.size()));
@@ -592,7 +592,7 @@ struct EvalPass : public Pass {
 			log("\n");
 			if (undef.size() > 0) {
 				undef.sort_and_unify();
-				log("Assumed undef (x) value for the following signals: %s\n\n", log_signal(undef));
+				log("Assumed undef (x) value for the following signals: %s\n\n", log_signal(undef).c_str());
 			}
 		}
 	}

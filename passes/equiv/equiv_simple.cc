@@ -115,9 +115,9 @@ struct EquivSimpleWorker
 
 		if (verbose) {
 			log("  Trying to prove $equiv cell %s:\n", log_id(equiv_cell));
-			log("    A = %s, B = %s, Y = %s\n", log_signal(bit_a), log_signal(bit_b), log_signal(equiv_cell->getPort(ID::Y)));
+			log("    A = %s, B = %s, Y = %s\n", log_signal(bit_a).c_str(), log_signal(bit_b).c_str(), log_signal(equiv_cell->getPort(ID::Y)).c_str());
 		} else {
-			log("  Trying to prove $equiv for %s:", log_signal(equiv_cell->getPort(ID::Y)));
+			log("  Trying to prove $equiv for %s:", log_signal(equiv_cell->getPort(ID::Y)).c_str());
 		}
 
 		int step = max_seq;
@@ -239,9 +239,9 @@ struct EquivSimpleWorker
 			#if 0
 				log("    Continuing analysis in previous time step with the following nets:\n");
 				for (auto bit : seed_a)
-					log("      A: %s\n", log_signal(bit));
+					log("      A: %s\n", log_signal(bit).c_str());
 				for (auto bit : seed_b)
-					log("      B: %s\n", log_signal(bit));
+					log("      B: %s\n", log_signal(bit).c_str());
 			#else
 				log("    Continuing analysis in previous time step with %d A- and %d B-nets.\n", GetSize(seed_a), GetSize(seed_b));
 			#endif
@@ -261,7 +261,7 @@ struct EquivSimpleWorker
 			SigSpec sig;
 			for (auto c : equiv_cells)
 				sig.append(sigmap(c->getPort(ID::Y)));
-			log(" Grouping SAT models for %s:\n", log_signal(sig));
+			log(" Grouping SAT models for %s:\n", log_signal(sig).c_str());
 		}
 
 		int counter = 0;

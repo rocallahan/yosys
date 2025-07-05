@@ -82,7 +82,7 @@ void reduce_tree(test_pmgen_pm &pm)
 	pm.autoremove(st.first);
 
 	log("Found %s tree with %d leaves for %s (%s).\n", log_id(st.first->type),
-			GetSize(A), log_signal(Y), log_id(st.first));
+			GetSize(A), log_signal(Y).c_str(), log_id(st.first));
 
 	Cell *c;
 
@@ -109,7 +109,7 @@ void opt_eqpmux(test_pmgen_pm &pm)
 	SigSpec NE = st.pmux->getPort(ID::B).extract(st.pmux_slice_ne*width, width);
 
 	log("Found eqpmux circuit driving %s (eq=%s, ne=%s, pmux=%s).\n",
-			log_signal(Y), log_id(st.eq), log_id(st.ne), log_id(st.pmux));
+			log_signal(Y).c_str(), log_id(st.eq), log_id(st.ne), log_id(st.pmux));
 
 	pm.autoremove(st.pmux);
 	Cell *c = pm.module->addMux(NEW_ID, NE, EQ, st.eq->getPort(ID::Y), Y);

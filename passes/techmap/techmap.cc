@@ -93,7 +93,7 @@ struct TechmapWorker
 				RTLIL::SigBit bit = sigmap(conn.second[i]);
 				if (bit.wire == nullptr) {
 					if (verbose)
-						log("  Constant input on bit %d of port %s: %s\n", i, log_id(conn.first), log_signal(bit));
+						log("  Constant input on bit %d of port %s: %s\n", i, log_id(conn.first), log_signal(bit).c_str());
 					constmap_info += stringf("|%s %d %d", log_id(conn.first), i, bit.data);
 				} else if (connbits_map.count(bit)) {
 					if (verbose)
@@ -515,7 +515,7 @@ struct TechmapWorker
 						std::string m_name = stringf("$extern:%s:%s", extmapper_name.c_str(), log_id(cell->type));
 
 						for (auto &c : cell->parameters)
-							m_name += stringf(":%s=%s", log_id(c.first), log_signal(c.second));
+							m_name += stringf(":%s=%s", log_id(c.first), log_signal(c.second).c_str());
 
 						if (extmapper_name == "wrap")
 							m_name += ":" + sha1(tpl->attributes.at(ID::techmap_wrap).decode_string());
@@ -737,7 +737,7 @@ struct TechmapWorker
 								RTLIL::SigSpec value = elem.value;
 								if (value.is_fully_const() && value.as_bool()) {
 									log("Not using module `%s' from techmap as it contains a %s marker wire with non-zero value %s.\n",
-											derived_name.c_str(), log_id(elem.wire->name), log_signal(value));
+											derived_name.c_str(), log_id(elem.wire->name), log_signal(value).c_str());
 									techmap_do_cache[tpl] = false;
 								}
 							}
@@ -754,7 +754,7 @@ struct TechmapWorker
 							auto &data = it.second.front();
 
 							if (!data.value.is_fully_const())
-								log_error("Techmap yielded config wire %s with non-const value %s.\n", log_id(data.wire->name), log_signal(data.value));
+								log_error("Techmap yielded config wire %s with non-const value %s.\n", log_id(data.wire->name), log_signal(data.value).c_str());
 
 							techmap_wire_names.erase(it.first);
 
@@ -882,7 +882,7 @@ struct TechmapWorker
 						if (techmap_do_cache[tpl])
 							for (auto &it2 : it.second)
 								if (!it2.value.is_fully_const())
-									log_error("Techmap yielded config wire %s with non-const value %s.\n", log_id(it2.wire->name), log_signal(it2.value));
+									log_error("Techmap yielded config wire %s with non-const value %s.\n", log_id(it2.wire->name), log_signal(it2.value).c_str());
 						techmap_wire_names.erase(it.first);
 					}
 
