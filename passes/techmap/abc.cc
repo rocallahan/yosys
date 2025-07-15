@@ -168,8 +168,9 @@ struct AbcModuleState {
 	std::string remap_name(RTLIL::IdString abc_name, RTLIL::Wire **orig_wire = nullptr);
 	void dump_loop_graph(FILE *f, int &nr, dict<int, pool<int>> &edges, pool<int> &workpool, std::vector<int> &in_counts);
 	void handle_loops(RTLIL::Module *module);
-	void abc_module(RTLIL::Design *design, RTLIL::Module *module, const std::vector<RTLIL::Cell*> &cells,
+	void prepare_module(RTLIL::Design *design, RTLIL::Module *module, const std::vector<RTLIL::Cell*> &cells,
 		bool dff_mode, std::string clk_str);
+	void run_abc();
 	void extract(RTLIL::Design *design, RTLIL::Module *module);
 	void finish();
 };
@@ -750,7 +751,7 @@ struct abc_output_filter
 	}
 };
 
-void AbcModuleState::abc_module(RTLIL::Design *design, RTLIL::Module *module, const std::vector<RTLIL::Cell*> &cells,
+void AbcModuleState::prepare_module(RTLIL::Design *design, RTLIL::Module *module, const std::vector<RTLIL::Cell*> &cells,
 	bool dff_mode, std::string clk_str)
 {
 	initvals.set(&assign_map, module);
@@ -963,9 +964,12 @@ void AbcModuleState::abc_module(RTLIL::Design *design, RTLIL::Module *module, co
 		mark_port(srst_sig);
 
 	handle_loops(module);
+}
 
-	buffer = stringf("%s/input.blif", tempdir_name.c_str());
-	f = fopen(buffer.c_str(), "wt");
+void AbcModuleState::run_abc()
+{
+	std::string buffer = stringf("%s/input.blif", tempdir_name.c_str());
+	FILE *f = fopen(buffer.c_str(), "wt");
 	if (f == nullptr)
 		log_error("Opening %s for writing failed: %s\n", buffer.c_str(), strerror(errno));
 
@@ -1087,8 +1091,6 @@ void AbcModuleState::abc_module(RTLIL::Design *design, RTLIL::Module *module, co
 	log_push();
 	if (count_output > 0)
 	{
-		log_header(design, "Executing ABC.\n");
-
 		auto &cell_cost = cmos_cost ? CellCosts::cmos_gate_cost() : CellCosts::default_gate_cost();
 
 		buffer = stringf("%s/stdcells.genlib", tempdir_name.c_str());
@@ -2084,7 +2086,8 @@ struct AbcPass : public Pass {
 			if (!dff_mode || !clk_str.empty()) {
 				AbcModuleState state(config);
 				state.assign_map.set(mod);
-				state.abc_module(design, mod, mod->selected_cells(), dff_mode, clk_str);
+				state.prepare_module(design, mod, mod->selected_cells(), dff_mode, clk_str);
+				state.run_abc();
 				state.extract(design, mod);
 				state.finish();
 				continue;
@@ -2253,7 +2256,8 @@ struct AbcPass : public Pass {
 				state.arst_sig = assign_map(std::get<5>(it.first));
 				state.srst_polarity = std::get<6>(it.first);
 				state.srst_sig = assign_map(std::get<7>(it.first));
-				state.abc_module(design, mod, it.second, !state.clk_sig.empty(), "$");
+				state.prepare_module(design, mod, it.second, !state.clk_sig.empty(), "$");
+				state.run_abc();
 				state.extract(design, mod);
 				state.finish();
 			}
