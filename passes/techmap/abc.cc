@@ -56,6 +56,7 @@
 #include <sstream>
 #include <climits>
 #include <vector>
+#include <thread>
 
 #ifndef _WIN32
 #  include <unistd.h>
@@ -591,10 +592,10 @@ void AbcModuleState::handle_loops(RTLIL::Module *module)
 			for (int id2 : edges[id1]) {
 				if (first_line)
 					log("Breaking loop using new signal %s: %s -> %s\n", wire_str.c_str(),
-							signal_str(signal_list[id1].bit).c_str(), signal_str(signal_list[id2].bit));
+							signal_str(signal_list[id1].bit).c_str(), signal_str(signal_list[id2].bit).c_str());
 				else
 					log("                               %*s  %s -> %s\n", int(wire_str.size()), "",
-							signal_str(signal_list[id1].bit).c_str(), signal_str(signal_list[id2].bit));
+							signal_str(signal_list[id1].bit).c_str(), signal_str(signal_list[id2].bit).c_str());
 				first_line = false;
 			}
 
@@ -2259,6 +2260,15 @@ struct AbcPass : public Pass {
 						std::get<4>(it.first) ? "" : "!", signal_str(std::get<5>(it.first)).c_str(),
 						std::get<6>(it.first) ? "" : "!", signal_str(std::get<7>(it.first)).c_str());
 
+			log_push();
+			log_header(design, "Executing ABCs.\n");
+		        std::vector<AbcModuleState> states;
+			std::vector<std::thread> threads;
+			int max_threads = std::thread::hardware_concurrency() * 2;
+#ifdef YOSYS_LINK_ABC
+			// ABC does't support multithreaded calls so don't try it.
+			max_threads = 1;
+#endif
 			for (auto &it : assigned_cells) {
 				AbcModuleState state(config);
 				state.assign_map.set(mod);
@@ -2271,13 +2281,28 @@ struct AbcPass : public Pass {
 				state.srst_polarity = std::get<6>(it.first);
 				state.srst_sig = assign_map(std::get<7>(it.first));
 				state.prepare_module(design, mod, it.second, !state.clk_sig.empty(), "$");
-				log_push();
-				log_header(design, "Executing ABC.\n");
-				state.run_abc();
-				state.extract(design, mod);
-				log_pop();
-				state.finish();
+				int i = int(states.size());
+				states.push_back(std::move(state));
+				if (i >= max_threads) {
+					int join_index = i - max_threads;
+					threads[join_index].join();
+					states[join_index].extract(design, mod);
+					states[join_index].finish();
+				}
+				threads.emplace_back([&](int i){
+					states[i].run_abc();
+				}, i);
 			}
+			for (size_t i = std::max(0, int(states.size()) - max_threads); i < int(states.size()); ++i) {
+				threads[i].join();
+				states[i].extract(design, mod);
+				states[i].finish();
+			}
+
+			log_header(design, "Extracting ABC results.\n");
+			for (int i = 0; i < int(states.size()); ++i) {
+			}
+			log_pop();
 		}
 
 		if (config.cleanup) {
