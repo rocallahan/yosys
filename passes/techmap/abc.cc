@@ -55,6 +55,7 @@
 #include <cerrno>
 #include <sstream>
 #include <climits>
+#include <memory>
 #include <vector>
 #include <thread>
 
@@ -163,6 +164,7 @@ struct AbcModuleState {
 	std::string tempdir_name;
 
 	AbcModuleState(const AbcConfig &config) : config(config) {}
+	AbcModuleState(AbcModuleState&&) = delete;
 
 	int map_signal(RTLIL::SigBit bit, gate_type_t gate_type = G(NONE), int in1 = -1, int in2 = -1, int in3 = -1, int in4 = -1);
 	void mark_port(RTLIL::SigSpec sig);
@@ -2262,7 +2264,7 @@ struct AbcPass : public Pass {
 
 			log_push();
 			log_header(design, "Executing ABCs.\n");
-		        std::vector<AbcModuleState> states;
+		        std::vector<std::unique_ptr<AbcModuleState>> states;
 			std::vector<std::thread> threads;
 			int max_threads = std::thread::hardware_concurrency() * 2;
 #ifdef YOSYS_LINK_ABC
@@ -2270,38 +2272,35 @@ struct AbcPass : public Pass {
 			max_threads = 1;
 #endif
 			for (auto &it : assigned_cells) {
-				AbcModuleState state(config);
-				state.assign_map.set(mod);
-				state.clk_polarity = std::get<0>(it.first);
-				state.clk_sig = assign_map(std::get<1>(it.first));
-				state.en_polarity = std::get<2>(it.first);
-				state.en_sig = assign_map(std::get<3>(it.first));
-				state.arst_polarity = std::get<4>(it.first);
-				state.arst_sig = assign_map(std::get<5>(it.first));
-				state.srst_polarity = std::get<6>(it.first);
-				state.srst_sig = assign_map(std::get<7>(it.first));
-				state.prepare_module(design, mod, it.second, !state.clk_sig.empty(), "$");
+				std::unique_ptr<AbcModuleState> state = std::make_unique<AbcModuleState>(config);
+				state->assign_map.set(mod);
+				state->clk_polarity = std::get<0>(it.first);
+				state->clk_sig = assign_map(std::get<1>(it.first));
+				state->en_polarity = std::get<2>(it.first);
+				state->en_sig = assign_map(std::get<3>(it.first));
+				state->arst_polarity = std::get<4>(it.first);
+				state->arst_sig = assign_map(std::get<5>(it.first));
+				state->srst_polarity = std::get<6>(it.first);
+				state->srst_sig = assign_map(std::get<7>(it.first));
+				state->prepare_module(design, mod, it.second, !state->clk_sig.empty(), "$");
 				int i = int(states.size());
 				states.push_back(std::move(state));
 				if (i >= max_threads) {
 					int join_index = i - max_threads;
 					threads[join_index].join();
-					states[join_index].extract(design, mod);
-					states[join_index].finish();
+					states[join_index]->extract(design, mod);
+					states[join_index]->finish();
 				}
 				threads.emplace_back([&](int i){
-					states[i].run_abc();
+					states[i]->run_abc();
 				}, i);
 			}
-			for (size_t i = std::max(0, int(states.size()) - max_threads); i < int(states.size()); ++i) {
+			for (int i = std::max(0, int(states.size()) - max_threads); i < int(states.size()); ++i) {
 				threads[i].join();
-				states[i].extract(design, mod);
-				states[i].finish();
+				states[i]->extract(design, mod);
+				states[i]->finish();
 			}
 
-			log_header(design, "Extracting ABC results.\n");
-			for (int i = 0; i < int(states.size()); ++i) {
-			}
 			log_pop();
 		}
 
