@@ -1202,18 +1202,21 @@ struct RTLIL::SigSpecIterator
 struct RTLIL::SigSpecConstIterator
 {
 	typedef std::input_iterator_tag iterator_category;
-	typedef RTLIL::SigBit value_type;
+	typedef const RTLIL::SigBit& value_type;
 	typedef ptrdiff_t difference_type;
 	typedef RTLIL::SigBit* pointer;
 	typedef RTLIL::SigBit& reference;
 
 	const RTLIL::SigSpec *sig_p;
-	int index;
+	SigBit bit;
+	int chunk_index;
+	int chunk_start_offset;
+	int bit_index;
 
-	inline const RTLIL::SigBit &operator*() const;
-	inline bool operator!=(const RTLIL::SigSpecConstIterator &other) const { return index != other.index; }
-	inline bool operator==(const RTLIL::SigSpecIterator &other) const { return index == other.index; }
-	inline void operator++() { index++; }
+	inline const RTLIL::SigBit &operator*();
+	inline bool operator!=(const RTLIL::SigSpecConstIterator &other) const { return !(*this == other); }
+	inline bool operator==(const RTLIL::SigSpecConstIterator &other) const { return bit_index == other.bit_index; }
+	inline void operator++();
 };
 
 struct RTLIL::SigSpec
@@ -1240,6 +1243,7 @@ private:
 	// Only used by Module::remove(const pool<Wire*> &wires)
 	// but cannot be more specific as it isn't yet declared
 	friend struct RTLIL::Module;
+	friend struct RTLIL::SigSpecConstIterator;
 
 public:
 	SigSpec() : width_(0), hash_(0) {}
@@ -1277,8 +1281,20 @@ public:
 	inline RTLIL::SigSpecIterator begin() { RTLIL::SigSpecIterator it; it.sig_p = this; it.index = 0; return it; }
 	inline RTLIL::SigSpecIterator end() { RTLIL::SigSpecIterator it; it.sig_p = this; it.index = width_; return it; }
 
-	inline RTLIL::SigSpecConstIterator begin() const { RTLIL::SigSpecConstIterator it; it.sig_p = this; it.index = 0; return it; }
-	inline RTLIL::SigSpecConstIterator end() const { RTLIL::SigSpecConstIterator it; it.sig_p = this; it.index = width_; return it; }
+	inline RTLIL::SigSpecConstIterator begin() const {
+		RTLIL::SigSpecConstIterator it;
+		it.sig_p = this;
+		it.bit_index = it.chunk_index = it.chunk_start_offset = 0;
+		return it;
+	}
+	inline RTLIL::SigSpecConstIterator end() const {
+		RTLIL::SigSpecConstIterator it;
+		it.sig_p = this;
+		it.bit_index = width_;
+		it.chunk_index = GetSize(chunks_);
+		it.chunk_start_offset = 0;
+		return it;
+	}
 
 	void sort();
 	void sort_and_unify();
@@ -2298,8 +2314,22 @@ inline RTLIL::SigBit &RTLIL::SigSpecIterator::operator*() const {
 	return (*sig_p)[index];
 }
 
-inline const RTLIL::SigBit &RTLIL::SigSpecConstIterator::operator*() const {
-	return (*sig_p)[index];
+inline const RTLIL::SigBit &RTLIL::SigSpecConstIterator::operator*() {
+	if (!sig_p->packed())
+		return sig_p->bits_.at(bit_index);
+	bit = sig_p->chunks_[chunk_index][bit_index - chunk_start_offset];
+	return bit;
+}
+
+inline void RTLIL::SigSpecConstIterator::operator++() {
+	++bit_index;
+	if (!sig_p->packed())
+		return;
+	if (chunk_index < GetSize(sig_p->chunks_) &&
+			(bit_index - chunk_start_offset) >= sig_p->chunks_[chunk_index].size()) {
+		chunk_start_offset += sig_p->chunks_[chunk_index].size();
+		++chunk_index;
+	}
 }
 
 inline RTLIL::SigBit::SigBit(const RTLIL::SigSpec &sig) {
