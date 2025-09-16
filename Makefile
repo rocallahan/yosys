@@ -629,6 +629,7 @@ $(eval $(call add_include_file,kernel/sexpr.h))
 $(eval $(call add_include_file,kernel/sigtools.h))
 $(eval $(call add_include_file,kernel/threading.h))
 $(eval $(call add_include_file,kernel/timinginfo.h))
+$(eval $(call add_include_file,kernel/trtlil.h))
 $(eval $(call add_include_file,kernel/utils.h))
 $(eval $(call add_include_file,kernel/yosys.h))
 $(eval $(call add_include_file,kernel/yosys_common.h))
@@ -655,7 +656,7 @@ OBJS += kernel/log_compat.o
 endif
 OBJS += kernel/binding.o kernel/tclapi.o
 OBJS += kernel/cellaigs.o kernel/celledges.o kernel/cost.o kernel/satgen.o kernel/scopeinfo.o kernel/qcsat.o kernel/mem.o kernel/ffmerge.o kernel/ff.o kernel/yw.o kernel/json.o kernel/fmt.o kernel/sexpr.o
-OBJS += kernel/drivertools.o kernel/functional.o kernel/threading.o
+OBJS += kernel/drivertools.o kernel/functional.o kernel/threading.o kernel/trtlil.o
 ifeq ($(ENABLE_ZLIB),1)
 OBJS += kernel/fstdata.o
 endif

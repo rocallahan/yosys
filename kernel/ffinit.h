@@ -25,12 +25,13 @@
 
 YOSYS_NAMESPACE_BEGIN
 
-struct FfInitVals
+template <typename View>
+struct GenericFfInitVals
 {
-	const SigMapView *sigmap;
+	const View *sigmap;
 	dict<SigBit, std::pair<State,SigBit>> initbits;
 
-	void set(const SigMapView *sigmap_, RTLIL::Module *module)
+	void set(const View *sigmap_, RTLIL::Module *module)
 	{
 		sigmap = sigmap_;
 		initbits.clear();
@@ -39,7 +40,7 @@ struct FfInitVals
 			if (wire->attributes.count(ID::init) == 0)
 				continue;
 
-			SigSpec wirebits = (*sigmap)(wire);
+			SigSpec wirebits = (*sigmap)(SigSpec(wire));
 			Const initval = wire->attributes.at(ID::init);
 
 			for (int i = 0; i < GetSize(wirebits) && i < GetSize(initval); i++)
@@ -126,14 +127,15 @@ struct FfInitVals
 		initbits.clear();
 	}
 
-	FfInitVals (const SigMapView *sigmap, RTLIL::Module *module)
+	GenericFfInitVals (const View *sigmap, RTLIL::Module *module)
 	{
 		set(sigmap, module);
 	}
 
-	FfInitVals () {}
+	GenericFfInitVals () {}
 };
 
+using FfInitVals = GenericFfInitVals<SigMapView>;
 
 YOSYS_NAMESPACE_END
 
