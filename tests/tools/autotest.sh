@@ -24,6 +24,7 @@ warn_iverilog_git=false
 firrtl2verilog=""
 xfirrtl="../xfirrtl"
 abcprog="$toolsdir/../../yosys-abc"
+export YOSYS_MAX_THREADS=4
 
 if [ ! -f "$toolsdir/cmp_tbdata" -o "$toolsdir/cmp_tbdata.c" -nt "$toolsdir/cmp_tbdata" ]; then
 	( set -ex; ${CXX:-g++} -Wall -o "$toolsdir/cmp_tbdata" "$toolsdir/cmp_tbdata.c"; ) || exit 1
