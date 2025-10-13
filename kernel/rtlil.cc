@@ -87,6 +87,20 @@ static_assert(check_well_known_id_order());
 
 dict<std::string, std::string> RTLIL::constpad;
 
+static int init_idstring_order_randomizer()
+{
+	const char *s = getenv("YOSYS_IDSTRING_ORDER_RANDOMIZER");
+	if (s == nullptr)
+		return 0;
+	return atoi(s);
+}
+
+int idstring_order_randomizer()
+{
+	static int r = init_idstring_order_randomizer();
+	return r;
+}
+
 static const pool<IdString> &builtin_ff_cell_types_internal() {
 	static const pool<IdString> res = {
 		ID($sr),

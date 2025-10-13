@@ -135,6 +135,8 @@ namespace RTLIL
 	};
 };
 
+int idstring_order_randomizer();
+
 struct RTLIL::IdString
 {
 	#undef YOSYS_XTRACE_GET_PUT
@@ -366,7 +368,8 @@ struct RTLIL::IdString
 	}
 
 	inline bool operator<(const IdString &rhs) const {
-		return index_ < rhs.index_;
+		int r = idstring_order_randomizer();
+		return (index_ ^ r) < (rhs.index_ ^ r);
 	}
 
 	inline bool operator==(const IdString &rhs) const { return index_ == rhs.index_; }
