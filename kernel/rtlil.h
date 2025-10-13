@@ -130,6 +130,8 @@ struct RTLIL::IdString
 	struct Storage {
 		char *buf;
 		int size;
+
+		std::string_view str_view() const { return {buf, static_cast<size_t>(size)}; }
 	};
 
 	#undef YOSYS_XTRACE_GET_PUT
@@ -260,12 +262,138 @@ struct RTLIL::IdString
 
 	inline void append_to(std::string *out) const {
 		if (index_ >= 0) {
-			const Storage &storage = global_id_storage_.at(index_);
-			*out += std::string_view(storage.buf, storage.size);
+			*out += global_id_storage_.at(index_).str_view();
 			return;
 		}
 		*out += *global_negative_id_prefix_storage_.at(index_);
 		*out += std::to_string(-index_);
+	}
+
+	class substring_iterator {
+		const Storage *storage;
+		const std::string *prefix;
+		std::string suffix;
+		bool has_suffix;
+	public:
+		substring_iterator(const Storage &storage) : storage(&storage), prefix(nullptr), has_suffix(false) {}
+		substring_iterator(const std::string *prefix, int suffix) :
+				storage(nullptr), prefix(prefix), suffix(std::to_string(suffix)), has_suffix(true) {}
+		// next() always returns a non-null value the first time it's called.
+		std::optional<std::string_view> next() {
+			if (storage != nullptr) {
+				std::string_view result = storage->str_view();
+				storage = nullptr;
+				return result;
+			}
+			if (prefix != nullptr) {
+				std::string_view result(*prefix);
+				prefix = nullptr;
+				return result;
+			}
+			if (has_suffix) {
+				has_suffix = false;
+				return std::string_view(suffix);
+			}
+			return std::nullopt;
+		}
+	};
+
+	class const_iterator {
+		const std::string *prefix;
+		std::string suffix;
+		const char *c_str;
+		int c_str_len;
+		// When this is INT_MAX it's the generic "end" value.
+		int index;
+
+	public:
+		using iterator_category = std::forward_iterator_tag;
+		using value_type = char;
+		using difference_type = std::ptrdiff_t;
+		using pointer = const char*;
+		using reference = const char&;
+
+		const_iterator(const Storage &storage) : prefix(nullptr), c_str(storage.buf), c_str_len(storage.size), index(0) {}
+		const_iterator(const std::string *prefix, int number) :
+				prefix(prefix), suffix(std::to_string(number)), c_str(nullptr), c_str_len(0), index(0) {}
+		// Construct end-marker
+		const_iterator() : prefix(nullptr), c_str(nullptr), c_str_len(0), index(INT_MAX) {}
+
+		int size() const {
+			if (c_str != nullptr)
+				return c_str_len;
+			return GetSize(*prefix) + GetSize(suffix);
+		}
+
+		char operator*() const {
+			if (c_str != nullptr)
+				return c_str[index];
+			int prefix_size = GetSize(*prefix);
+			if (index < prefix_size)
+				return prefix->at(index);
+			return suffix[index - prefix_size];
+		}
+
+		const_iterator& operator++() { ++index; return *this; }
+		const_iterator operator++(int) { const_iterator result(*this); ++index; return result; }
+		const_iterator& operator+=(int i) { index += i; return *this; }
+
+		const_iterator operator+(int add) {
+			const_iterator result = *this;
+			result += add;
+			return result;
+		}
+
+		bool operator==(const const_iterator& other) const {
+			return index == other.index || (other.index == INT_MAX && index == size())
+				|| (index == INT_MAX && other.index == other.size());
+		}
+		bool operator!=(const const_iterator& other) const {
+			return !(*this == other);
+		}
+	};
+	const_iterator begin() const {
+		if (index_ >= 0) {
+			return const_iterator(global_id_storage_.at(index_));
+		}
+		return const_iterator(global_negative_id_prefix_storage_.at(index_), -index_);
+	}
+	const_iterator end() const {
+		return const_iterator();
+	}
+
+	substring_iterator substrings() const {
+		if (index_ >= 0) {
+			return substring_iterator(global_id_storage_.at(index_));
+		}
+		return substring_iterator(global_negative_id_prefix_storage_.at(index_), -index_);
+	}
+
+	inline bool lt_by_name(const IdString &rhs) const {
+		substring_iterator lhs_it = substrings();
+		substring_iterator rhs_it = rhs.substrings();
+		std::string_view lhs_substr = *lhs_it.next();
+		std::string_view rhs_substr = *rhs_it.next();
+		while (true) {
+			int min = std::min(GetSize(lhs_substr), GetSize(rhs_substr));
+			int diff = memcmp(lhs_substr.data(), rhs_substr.data(), min);
+			if (diff != 0)
+				return diff < 0;
+			lhs_substr = lhs_substr.substr(min);
+			rhs_substr = rhs_substr.substr(min);
+			if (rhs_substr.empty()) {
+				if (std::optional<std::string_view> s = rhs_it.next())
+					rhs_substr = *s;
+				else
+					return false;
+			}
+			if (lhs_substr.empty()) {
+				if (std::optional<std::string_view> s = lhs_it.next())
+					lhs_substr = *s;
+				else
+					return true;
+			}
+		}
 	}
 
 	inline bool operator<(const IdString &rhs) const {
@@ -284,30 +412,66 @@ struct RTLIL::IdString
 	bool operator!=(const char *rhs) const { return strcmp(c_str(), rhs) != 0; }
 
 	char operator[](size_t i) const {
-					const char *p = c_str();
+		if (index_ >= 0) {
+			const Storage &storage = global_id_storage_.at(index_);
 #ifndef NDEBUG
-		for (; i != 0; i--, p++)
-			log_assert(*p != 0);
-		return *p;
-#else
-		return *(p + i);
+			log_assert(static_cast<int>(i) < storage.size);
 #endif
+			return *(storage.buf + i);
+		}
+		const std::string &id_start = *global_negative_id_prefix_storage_.at(index_);
+		if (i < id_start.size())
+			return id_start[i];
+		std::string suffix = std::to_string(-index_);
+#ifndef NDEBUG
+		log_assert(i < suffix.size());
+#endif
+		return suffix[i - id_start.size()];
 	}
 
 	std::string substr(size_t pos = 0, size_t len = std::string::npos) const {
-		if (len == std::string::npos || len + pos >= size())
-			return std::string(c_str() + pos);
-		else
-			return std::string(c_str() + pos, len);
+		std::string result;
+		const_iterator it = begin() + pos;
+		const_iterator end_it = end();
+		if (len != std::string::npos && len < it.size() - pos) {
+			end_it = it + len;
+		}
+		std::copy(it, end_it, std::back_inserter(result));
+		return result;
 	}
 
 	int compare(size_t pos, size_t len, const char* s) const {
-		return strncmp(c_str()+pos, s, len);
+		const_iterator it = begin() + pos;
+		const_iterator end_it = end();
+		while (len > 0 && *s != 0 && it != end_it) {
+			int diff = *it - *s;
+			if (diff != 0)
+				return diff;
+			++it;
+			++s;
+			--len;
+		}
+		return 0;
 	}
 
 	bool begins_with(std::string_view prefix) const {
-		if (size() < prefix.size()) return false;
-		return compare(0, prefix.size(), prefix.data()) == 0;
+		substring_iterator it = substrings();
+		std::string_view substr = *it.next();
+		while (true) {
+			int min = std::min(GetSize(substr), GetSize(prefix));
+			if (memcmp(substr.data(), prefix.data(), min) != 0)
+				return false;
+			prefix = prefix.substr(min);
+			if (prefix.empty())
+				return true;
+			substr = substr.substr(min);
+			if (substr.empty()) {
+				if (std::optional<std::string_view> s = it.next())
+					substr = *s;
+				else
+					return false;
+			}
+		}
 	}
 
 	bool ends_with(std::string_view suffix) const {
@@ -317,11 +481,13 @@ struct RTLIL::IdString
 	}
 
 	bool contains(std::string_view s) const {
-		return std::string_view(c_str()).find(s) != std::string::npos;
+		if (index_ >= 0)
+			return global_id_storage_.at(index_).str_view().find(s) != std::string::npos;
+		return str().find(s) != std::string::npos;
 	}
 
 	size_t size() const {
-		return global_id_storage_.at(index_).size;
+		return begin().size();
 	}
 
 	bool empty() const {
@@ -599,13 +765,13 @@ namespace RTLIL {
 
 	template <typename T> struct sort_by_name_str {
 		bool operator()(T *a, T *b) const {
-			return strcmp(a->name.c_str(), b->name.c_str()) < 0;
+			return a->name.lt_by_name(b->name);
 		}
 	};
 
 	struct sort_by_id_str {
 		bool operator()(const RTLIL::IdString &a, const RTLIL::IdString &b) const {
-			return strcmp(a.c_str(), b.c_str()) < 0;
+			return a.lt_by_name(b);
 		}
 	};
 
