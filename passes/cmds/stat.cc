@@ -880,6 +880,15 @@ void read_liberty_cellarea(dict<IdString, cell_area_t> &cell_area, string libert
 	}
 }
 
+#include <fcntl.h>
+#include <unistd.h>
+static void write_perf(const char* msg) {
+	
+	int fd = open("/tmp/perf.fifo", O_WRONLY);
+	write(fd, msg, strlen(msg));
+	close(fd);
+}
+
 struct StatPass : public Pass {
 	StatPass() : Pass("stat", "print some statistics") {}
 	bool formatted_help() override
@@ -925,6 +934,7 @@ struct StatPass : public Pass {
 	}
 	void execute(std::vector<std::string> args, RTLIL::Design *design) override
 	{
+		write_perf("enable\n");
 		bool width_mode = false, json_mode = false, hierarchy_mode = false;
 		RTLIL::Module *top_mod = nullptr;
 		std::map<RTLIL::IdString, statdata_t> mod_stat;
@@ -1059,6 +1069,7 @@ struct StatPass : public Pass {
 		}
 
 		log("\n");
+		write_perf("disable\n");
 	}
 } StatPass;
 
