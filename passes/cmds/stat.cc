@@ -883,7 +883,7 @@ void read_liberty_cellarea(dict<IdString, cell_area_t> &cell_area, string libert
 #include <fcntl.h>
 #include <unistd.h>
 static void write_perf(const char* msg) {
-	
+	return;
 	int fd = open("/tmp/perf.fifo", O_WRONLY);
 	write(fd, msg, strlen(msg));
 	close(fd);

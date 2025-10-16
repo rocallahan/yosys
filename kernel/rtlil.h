@@ -273,28 +273,35 @@ struct RTLIL::IdString
 		const Storage *storage;
 		const std::string *prefix;
 		std::string suffix;
-		bool has_suffix;
+		int suffix_number;
+		enum State {
+			STORAGE,
+			PREFIX,
+			SUFFIX,
+			DONE,
+		};
+		State state;
 	public:
-		substring_iterator(const Storage &storage) : storage(&storage), prefix(nullptr), has_suffix(false) {}
-		substring_iterator(const std::string *prefix, int suffix) :
-				storage(nullptr), prefix(prefix), suffix(std::to_string(suffix)), has_suffix(true) {}
+		substring_iterator(const Storage &storage)
+				: storage(&storage), prefix(nullptr), suffix_number(0), state(STORAGE) {}
+		substring_iterator(const std::string *prefix, int suffix_number) :
+				storage(nullptr), prefix(prefix), suffix_number(suffix_number), state(PREFIX) {}
 		// next() always returns a non-null value the first time it's called.
 		std::optional<std::string_view> next() {
-			if (storage != nullptr) {
-				std::string_view result = storage->str_view();
-				storage = nullptr;
-				return result;
-			}
-			if (prefix != nullptr) {
-				std::string_view result(*prefix);
-				prefix = nullptr;
-				return result;
-			}
-			if (has_suffix) {
-				has_suffix = false;
+			switch (state) {
+			case STORAGE:
+				state = DONE;
+				return storage->str_view();
+			case PREFIX:
+				state = SUFFIX;
+				return std::string_view(*prefix);
+			case SUFFIX:
+				suffix = std::to_string(suffix_number);
+				state = DONE;
 				return std::string_view(suffix);
+			case DONE:
+				return std::nullopt;
 			}
-			return std::nullopt;
 		}
 	};
 
