@@ -151,13 +151,14 @@ struct RTLIL::IdString
 	static std::vector<Storage> global_id_storage_;
 	// Lookup table for non-autoidx IDs
 	static std::unordered_map<std::string_view, int> global_id_index_;
+	static std::vector<int> global_free_idx_list_;
+
 	// Shared prefix string storage for autoidx IDs, which have negative
 	// indices. Append the negated (i.e. positive) ID to this string to get
 	// the real string. The prefix strings must live forever.
 	static std::unordered_map<int, const std::string*> global_autoidx_id_prefix_storage_;
 	// Explicit string storage for autoidx IDs
 	static std::unordered_map<int, char*> global_autoidx_id_storage_;
-	static std::vector<int> global_free_idx_list_;
 
 #ifdef YOSYS_ENABLE_THREADS
 	static std::mutex global_refcount_storage_mutex_;

@@ -38,9 +38,9 @@ bool RTLIL::IdString::destruct_guard_ok = false;
 RTLIL::IdString::destruct_guard_t RTLIL::IdString::destruct_guard;
 std::vector<RTLIL::IdString::Storage> RTLIL::IdString::global_id_storage_;
 std::unordered_map<std::string_view, int> RTLIL::IdString::global_id_index_;
+std::vector<int> RTLIL::IdString::global_free_idx_list_;
 std::unordered_map<int, const std::string*> RTLIL::IdString::global_autoidx_id_prefix_storage_;
 std::unordered_map<int, char*> RTLIL::IdString::global_autoidx_id_storage_;
-std::vector<int> RTLIL::IdString::global_free_idx_list_;
 #ifdef YOSYS_ENABLE_THREADS
 std::mutex RTLIL::IdString::global_refcount_storage_mutex_;
 #endif
