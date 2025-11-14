@@ -40,8 +40,11 @@ std::vector<RTLIL::IdString::Storage> RTLIL::IdString::global_id_storage_;
 std::unordered_map<std::string_view, int> RTLIL::IdString::global_id_index_;
 std::unordered_map<int, const std::string*> RTLIL::IdString::global_autoidx_id_prefix_storage_;
 std::unordered_map<int, char*> RTLIL::IdString::global_autoidx_id_storage_;
-std::unordered_map<int, int> RTLIL::IdString::global_refcount_storage_;
 std::vector<int> RTLIL::IdString::global_free_idx_list_;
+#ifdef YOSYS_ENABLE_THREADS
+std::mutex RTLIL::IdString::global_refcount_storage_mutex_;
+#endif
+std::unordered_map<int, int> RTLIL::IdString::global_refcount_storage_;
 
 static void populate(std::string_view name)
 {
@@ -246,6 +249,10 @@ void RTLIL::OwningIdString::collect_garbage()
 	for (auto &[idx, design] : *RTLIL::Design::get_all_designs()) {
 		collector.trace(*design);
 	}
+
+#ifdef YOSYS_ENABLE_THREADS
+	std::lock_guard<std::mutex> lock(global_refcount_storage_mutex_);
+#endif
 	int size = GetSize(global_id_storage_);
 	for (int i = static_cast<int>(StaticId::STATIC_ID_END); i < size; ++i) {
 		RTLIL::IdString::Storage &storage = global_id_storage_.at(i);

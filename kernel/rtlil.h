@@ -26,6 +26,10 @@
 #include <string_view>
 #include <unordered_map>
 
+#ifdef YOSYS_ENABLE_THREADS
+#include <mutex>
+#endif
+
 YOSYS_NAMESPACE_BEGIN
 
 namespace RTLIL
@@ -153,11 +157,18 @@ struct RTLIL::IdString
 	static std::unordered_map<int, const std::string*> global_autoidx_id_prefix_storage_;
 	// Explicit string storage for autoidx IDs
 	static std::unordered_map<int, char*> global_autoidx_id_storage_;
-	// All (index, refcount) pairs in this map have refcount > 0.
-	static std::unordered_map<int, int> global_refcount_storage_;
 	static std::vector<int> global_free_idx_list_;
 
+#ifdef YOSYS_ENABLE_THREADS
+	static std::mutex global_refcount_storage_mutex_;
+#endif
+	// All (index, refcount) pairs in this map have refcount > 0.
+	static std::unordered_map<int, int> global_refcount_storage_;
+
 	static int refcount(int idx) {
+#ifdef YOSYS_ENABLE_THREADS
+		std::lock_guard lock(global_refcount_storage_mutex_);
+#endif
 		auto it = global_refcount_storage_.find(idx);
 		if (it == global_refcount_storage_.end())
 			return 0;
@@ -597,6 +608,9 @@ private:
 	{
 		if (idx < static_cast<short>(StaticId::STATIC_ID_END))
 			return;
+	#ifdef YOSYS_ENABLE_THREADS
+		std::lock_guard lock(global_refcount_storage_mutex_);
+	#endif
 		auto it = global_refcount_storage_.find(idx);
 		if (it == global_refcount_storage_.end())
 			global_refcount_storage_.insert(it, {idx, 1});
@@ -617,6 +631,9 @@ private:
 	#ifdef YOSYS_XTRACE_GET_PUT
 		if (yosys_xtrace)
 			log("#X# PUT '%s' (index %d, refcount %u)\n", from_index(index_), index_, refcount(index_));
+	#endif
+	#ifdef YOSYS_ENABLE_THREADS
+		std::lock_guard lock(global_refcount_storage_mutex_);
 	#endif
 		auto it = global_refcount_storage_.find(index_);
 		log_assert(it != global_refcount_storage_.end() && it->second >= 1);
