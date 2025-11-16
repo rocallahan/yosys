@@ -1,3 +1,4 @@
+#include <atomic>
 #include <deque>
 
 #ifdef YOSYS_ENABLE_THREADS
@@ -179,6 +180,57 @@ private:
 	std::mutex mutex;
 #endif
 	std::vector<T> contents;
+};
+
+// An array allowing up to 2^31 elements.
+// Elements of this array don't change their addresess (unlike std::vector resizing for example).
+// Thread-safe for concurrent access.
+template <class T>
+class HugeArray
+{
+public:
+	T &operator[](int index) const {
+		auto &c = const_cast<LazyArray<LazyArray<std::array<T, 1 << leaf_level_size_bits>>> &>(contents);
+		return c[index >> (array_level_size_bits*2)]
+			[(index >> array_level_size_bits) & ((1 << array_level_size_bits) - 1)]
+			[index & ((1 << leaf_level_size_bits) - 1)];
+	}
+	// Access an element that is guaranteed to preexist
+	T &existing_element(int index) const {
+		auto &c = const_cast<LazyArray<LazyArray<std::array<T, 1 << leaf_level_size_bits>>> &>(contents);
+		return c.existing_element(index >> (array_level_size_bits*2))
+			.existing_element((index >> array_level_size_bits) & ((1 << array_level_size_bits) - 1))
+			[index & ((1 << leaf_level_size_bits) - 1)];
+	}
+private:
+	static constexpr int leaf_level_size_bits = 11;
+	static constexpr int array_level_size_bits = 10;
+	template <class U>
+	struct LazyArray {
+		LazyArray() { memset(&v, 0, sizeof(v)); }
+		~LazyArray() {
+			for (int i = 0; i < (1 << array_level_size_bits); i++)
+				delete v[i].load(std::memory_order_acquire);
+		}
+		U &operator[](int index) {
+			U *u = v[index].load(std::memory_order_acquire);
+			if (u != nullptr)
+				return *u;
+			u = new U;
+			U *expected = nullptr;
+			if (v[index].compare_exchange_strong(expected, u, std::memory_order_acq_rel))
+				return *u;
+			delete u;
+			return *expected;
+		}
+		// Access an element that is guaranteed to preexist
+		U &existing_element(int index) {
+			return *v[index].load(std::memory_order_acquire);
+		}
+		std::array<std::atomic<U*>, 1 << array_level_size_bits> v;
+	};
+
+	LazyArray<LazyArray<std::array<T, 1 << leaf_level_size_bits>>> contents;
 };
 
 YOSYS_NAMESPACE_END
