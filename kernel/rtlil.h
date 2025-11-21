@@ -22,7 +22,9 @@
 
 #include "kernel/yosys_common.h"
 #include "kernel/yosys.h"
+#include "kernel/threading.h"
 
+#include <atomic>
 #include <string_view>
 #include <unordered_map>
 
@@ -147,11 +149,18 @@ struct RTLIL::IdString
 		~destruct_guard_t() { destruct_guard_ok = false; }
 	} destruct_guard;
 
-	// String storage for non-autoidx IDs
-	static std::vector<Storage> global_id_storage_;
-	// Lookup table for non-autoidx IDs
+#ifdef YOSYS_ENABLE_THREADS
+	// Protects global_id_next_unused_, global_id_index_, global_free_idx_list_
+	// and adding/erasing entries in global_id_storage_.
+	static std::mutex global_id_mutex_;
+#endif
+	static int global_id_next_unused_;
 	static std::unordered_map<std::string_view, int> global_id_index_;
 	static std::vector<int> global_free_idx_list_;
+
+	// String storage for non-autoidx IDs. Entries are added/erased while holding
+	// global_id_mutex_ but known-existing entries are readable without holding global_id_mutex_.
+	static HugeArray<Storage> global_id_storage_;
 
 	// Shared prefix string storage for autoidx IDs, which have negative
 	// indices. Append the negated (i.e. positive) ID to this string to get
@@ -179,12 +188,15 @@ struct RTLIL::IdString
 	static inline void xtrace_db_dump()
 	{
 	#ifdef YOSYS_XTRACE_GET_PUT
-		for (int idx = 0; idx < GetSize(global_id_storage_); idx++)
+	#ifdef YOSYS_ENABLE_THREADS
+		std::lock_guard lock(global_id_storage_);
+	#endif
+		for (int idx = 0; idx < global_id_next_unused_; idx++)
 		{
-			if (global_id_storage_.at(idx).buf == nullptr)
+			if (global_id_storage_[idx].buf == nullptr)
 				log("#X# DB-DUMP index %d: FREE\n", idx);
 			else
-				log("#X# DB-DUMP index %d: '%s' (ref %u)\n", idx, global_id_storage_.at(idx).buf, refcount(idx));
+				log("#X# DB-DUMP index %d: '%s' (ref %u)\n", idx, global_id_storage_[idx].buf, refcount(idx));
 		}
 	#endif
 	}
@@ -198,13 +210,16 @@ struct RTLIL::IdString
 
 	static int insert(std::string_view p)
 	{
+	#ifdef YOSYS_ENABLE_THREADS
+		std::lock_guard<std::mutex> lock(global_id_mutex_);
+	#endif
 		log_assert(destruct_guard_ok);
 
 		auto it = global_id_index_.find(p);
 		if (it != global_id_index_.end()) {
 	#ifdef YOSYS_XTRACE_GET_PUT
 			if (yosys_xtrace)
-				log("#X# GET-BY-NAME '%s' (index %d, refcount %u)\n", global_id_storage_.at(it->second).buf, it->second, refcount(it->second));
+				log("#X# GET-BY-NAME '%s' (index %d, refcount %u)\n", global_id_storage_[it->second].buf, it->second, refcount(it->second));
 	#endif
 			return it->second;
 		}
@@ -247,7 +262,7 @@ struct RTLIL::IdString
 
 	inline const char *c_str() const {
 		if (index_ >= 0)
-			return global_id_storage_.at(index_).buf;
+			return global_id_storage_.existing_element(index_).buf;
 		auto it = global_autoidx_id_storage_.find(index_);
 		if (it != global_autoidx_id_storage_.end())
 			return it->second;
@@ -269,7 +284,7 @@ struct RTLIL::IdString
 
 	inline void append_to(std::string *out) const {
 		if (index_ >= 0) {
-			*out += global_id_storage_.at(index_).str_view();
+			*out += global_id_storage_.existing_element(index_).str_view();
 			return;
 		}
 		*out += *global_autoidx_id_prefix_storage_.at(index_);
@@ -356,7 +371,7 @@ struct RTLIL::IdString
 	};
 	const_iterator begin() const {
 		if (index_ >= 0) {
-			return const_iterator(global_id_storage_.at(index_));
+			return const_iterator(global_id_storage_.existing_element(index_));
 		}
 		return const_iterator(global_autoidx_id_prefix_storage_.at(index_), -index_);
 	}
@@ -366,7 +381,7 @@ struct RTLIL::IdString
 
 	Substrings substrings() const {
 		if (index_ >= 0) {
-			return Substrings(global_id_storage_.at(index_));
+			return Substrings(global_id_storage_.existing_element(index_));
 		}
 		return Substrings(global_autoidx_id_prefix_storage_.at(index_), -index_);
 	}
@@ -415,7 +430,7 @@ struct RTLIL::IdString
 
 	char operator[](size_t i) const {
 		if (index_ >= 0) {
-			const Storage &storage = global_id_storage_.at(index_);
+			const Storage &storage = global_id_storage_.existing_element(index_);
 #ifndef NDEBUG
 			log_assert(static_cast<int>(i) < storage.size);
 #endif
@@ -486,7 +501,7 @@ struct RTLIL::IdString
 
 	bool contains(std::string_view s) const {
 		if (index_ >= 0)
-			return global_id_storage_.at(index_).str_view().find(s) != std::string::npos;
+			return global_id_storage_.existing_element(index_).str_view().find(s) != std::string::npos;
 		return str().find(s) != std::string::npos;
 	}
 
@@ -537,6 +552,7 @@ struct RTLIL::IdString
 
 private:
 	static void prepopulate();
+	// global_id_mutex_ must be held.
 	static int really_insert(std::string_view p, std::unordered_map<std::string_view, int>::iterator &it);
 
 protected:

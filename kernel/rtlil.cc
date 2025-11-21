@@ -36,9 +36,13 @@ YOSYS_NAMESPACE_BEGIN
 
 bool RTLIL::IdString::destruct_guard_ok = false;
 RTLIL::IdString::destruct_guard_t RTLIL::IdString::destruct_guard;
-std::vector<RTLIL::IdString::Storage> RTLIL::IdString::global_id_storage_;
+#ifdef YOSYS_ENABLE_THREADS
+std::mutex RTLIL::IdString::global_id_mutex_;
+#endif
+int RTLIL::IdString::global_id_next_unused_;
 std::unordered_map<std::string_view, int> RTLIL::IdString::global_id_index_;
 std::vector<int> RTLIL::IdString::global_free_idx_list_;
+HugeArray<RTLIL::IdString::Storage> RTLIL::IdString::global_id_storage_;
 std::unordered_map<int, const std::string*> RTLIL::IdString::global_autoidx_id_prefix_storage_;
 std::unordered_map<int, char*> RTLIL::IdString::global_autoidx_id_storage_;
 #ifdef YOSYS_ENABLE_THREADS
@@ -46,26 +50,30 @@ std::mutex RTLIL::IdString::global_refcount_storage_mutex_;
 #endif
 std::unordered_map<int, int> RTLIL::IdString::global_refcount_storage_;
 
-static void populate(std::string_view name)
+static void populate(std::string_view name, int index)
 {
 	if (name[1] == '$') {
 		// Skip prepended '\'
 		name = name.substr(1);
 	}
-	RTLIL::IdString::global_id_index_.insert({name, GetSize(RTLIL::IdString::global_id_storage_)});
-	RTLIL::IdString::global_id_storage_.push_back({const_cast<char*>(name.data()), GetSize(name)});
+	RTLIL::IdString::global_id_index_.insert({name, index});
+	RTLIL::IdString::global_id_storage_[index] = {const_cast<char*>(name.data()), GetSize(name)};
 }
 
 void RTLIL::IdString::prepopulate()
 {
+#ifdef YOSYS_ENABLE_THREADS
+	std::lock_guard<std::mutex> lock(global_id_mutex_);
+#endif
 	int size = static_cast<short>(RTLIL::StaticId::STATIC_ID_END);
-	global_id_storage_.reserve(size);
 	global_id_index_.reserve(size);
 	RTLIL::IdString::global_id_index_.insert({"", 0});
-	RTLIL::IdString::global_id_storage_.push_back({const_cast<char*>(""), 0});
-#define X(N) populate("\\" #N);
+	RTLIL::IdString::global_id_storage_[0] = {const_cast<char*>(""), 0};
+	int index = 1;
+#define X(N) populate("\\" #N, index++);
 #include "kernel/constids.inc"
 #undef X
+	global_id_next_unused_ = index;
 }
 
 static std::optional<int> parse_autoidx(std::string_view v)
@@ -105,28 +113,29 @@ int RTLIL::IdString::really_insert(std::string_view p, std::unordered_map<std::s
 		}
 	}
 
+	int idx;
 	if (global_free_idx_list_.empty()) {
-		log_assert(global_id_storage_.size() < 0x40000000);
-		global_free_idx_list_.push_back(global_id_storage_.size());
-		global_id_storage_.push_back({nullptr, 0});
+		idx = global_id_next_unused_++;
+		log_assert(idx < 0x40000000);
+	} else {
+		idx = global_free_idx_list_.back();
+		global_free_idx_list_.pop_back();
 	}
 
-	int idx = global_free_idx_list_.back();
-	global_free_idx_list_.pop_back();
 	char* buf = static_cast<char*>(malloc(p.size() + 1));
 	memcpy(buf, p.data(), p.size());
 	buf[p.size()] = 0;
-	global_id_storage_.at(idx) = {buf, GetSize(p)};
+	global_id_storage_[idx] = {buf, GetSize(p)};
 	global_id_index_.insert(it, {std::string_view(buf, p.size()), idx});
 
 	if (yosys_xtrace) {
-		log("#X# New IdString '%s' with index %d.\n", global_id_storage_.at(idx).buf, idx);
+		log("#X# New IdString '%s' with index %d.\n", buf, idx);
 		log_backtrace("-X- ", yosys_xtrace-1);
 	}
 
 #ifdef YOSYS_XTRACE_GET_PUT
 	if (yosys_xtrace)
-		log("#X# GET-BY-NAME '%s' (index %d, refcount %u)\n", global_id_storage_.at(idx).buf, idx, refcount(idx));
+		log("#X# GET-BY-NAME '%s' (index %d, refcount %u)\n", buf, idx, refcount(idx));
 #endif
 	return idx;
 }
@@ -251,11 +260,11 @@ void RTLIL::OwningIdString::collect_garbage()
 	}
 
 #ifdef YOSYS_ENABLE_THREADS
-	std::lock_guard<std::mutex> lock(global_refcount_storage_mutex_);
+	std::lock_guard<std::mutex> lock(global_id_mutex_);
+	std::lock_guard<std::mutex> lock2(global_refcount_storage_mutex_);
 #endif
-	int size = GetSize(global_id_storage_);
-	for (int i = static_cast<int>(StaticId::STATIC_ID_END); i < size; ++i) {
-		RTLIL::IdString::Storage &storage = global_id_storage_.at(i);
+	for (int i = static_cast<int>(StaticId::STATIC_ID_END); i < global_id_next_unused_; ++i) {
+		RTLIL::IdString::Storage &storage = global_id_storage_.existing_element(i);
 		if (storage.buf == nullptr)
 			continue;
 		if (collector.live.find(i) != collector.live.end())
