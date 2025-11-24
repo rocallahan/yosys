@@ -40,11 +40,14 @@ RTLIL::IdString::destruct_guard_t RTLIL::IdString::destruct_guard;
 std::mutex RTLIL::IdString::global_id_mutex_;
 #endif
 int RTLIL::IdString::global_id_next_unused_;
+int RTLIL::IdString::last_gc_autoidx_;
 std::unordered_map<std::string_view, int> RTLIL::IdString::global_id_index_;
 std::vector<int> RTLIL::IdString::global_free_idx_list_;
+std::unordered_map<int, const std::string*> RTLIL::IdString::global_autoidx_id_prefix_storage_old_;
+std::unordered_map<int, char*> RTLIL::IdString::global_autoidx_id_storage_old_;
 HugeArray<RTLIL::IdString::Storage> RTLIL::IdString::global_id_storage_;
-std::unordered_map<int, const std::string*> RTLIL::IdString::global_autoidx_id_prefix_storage_;
-std::unordered_map<int, char*> RTLIL::IdString::global_autoidx_id_storage_;
+HugeArray<PtrDefaultNull<const std::string>> RTLIL::IdString::global_autoidx_id_prefix_storage_new_;
+HugeArray<PtrDefaultNull<char>> RTLIL::IdString::global_autoidx_id_storage_new_;
 #ifdef YOSYS_ENABLE_THREADS
 std::mutex RTLIL::IdString::global_refcount_storage_mutex_;
 #endif
@@ -104,8 +107,8 @@ int RTLIL::IdString::really_insert(std::string_view p, std::unordered_map<std::s
 		size_t autoidx_pos = p.find_last_of('$') + 1;
 		std::optional<int> p_autoidx = parse_autoidx(p.substr(autoidx_pos));
 		if (p_autoidx.has_value()) {
-			auto prefix_it = global_autoidx_id_prefix_storage_.find(-*p_autoidx);
-			if (prefix_it != global_autoidx_id_prefix_storage_.end() && p.substr(0, autoidx_pos) == *prefix_it->second)
+			const std::string *prefix = lookup_autoidx_prefix(-*p_autoidx);
+			if (prefix != nullptr && p.substr(0, autoidx_pos) == *prefix)
 				return -*p_autoidx;
 			// Ensure NEW_ID/NEW_ID_SUFFIX will not create collisions with the ID
 			// we're about to create.
@@ -138,6 +141,15 @@ int RTLIL::IdString::really_insert(std::string_view p, std::unordered_map<std::s
 		log("#X# GET-BY-NAME '%s' (index %d, refcount %u)\n", buf, idx, refcount(idx));
 #endif
 	return idx;
+}
+
+char *RTLIL::IdString::allocate_autoidx_c_str(int index) {
+	const std::string &prefix = autoidx_prefix(index);
+	std::string suffix = std::to_string(-index);
+	char *c = new char[prefix.size() + suffix.size() + 1];
+	memcpy(c, prefix.data(), prefix.size());
+	memcpy(c + prefix.size(), suffix.c_str(), suffix.size() + 1);
+	return c;
 }
 
 static constexpr bool check_well_known_id_order()
@@ -283,7 +295,7 @@ void RTLIL::OwningIdString::collect_garbage()
 		global_free_idx_list_.push_back(i);
 	}
 
-	for (auto it = global_autoidx_id_prefix_storage_.begin(); it != global_autoidx_id_prefix_storage_.end();) {
+	for (auto it = global_autoidx_id_prefix_storage_old_.begin(); it != global_autoidx_id_prefix_storage_old_.end();) {
 		if (collector.live.find(it->first) != collector.live.end()) {
 			++it;
 			continue;
@@ -292,13 +304,31 @@ void RTLIL::OwningIdString::collect_garbage()
 			++it;
 			continue;
 		}
-		auto str_it = global_autoidx_id_storage_.find(it->first);
-		if (str_it != global_autoidx_id_storage_.end()) {
+		auto str_it = global_autoidx_id_storage_old_.find(it->first);
+		if (str_it != global_autoidx_id_storage_old_.end()) {
 			delete[] str_it->second;
-			global_autoidx_id_storage_.erase(str_it);
+			global_autoidx_id_storage_old_.erase(str_it);
 		}
-		it = global_autoidx_id_prefix_storage_.erase(it);
+		it = global_autoidx_id_prefix_storage_old_.erase(it);
 	}
+
+	// Migrate new autoidx IDs to the hashtable storage to avoid wasting memory.
+	for (int idx = last_gc_autoidx_; idx < autoidx; ++idx) {
+		const std::string *prefix = global_autoidx_id_prefix_storage_new_[idx];
+		if (prefix == nullptr)
+			continue;
+		if (collector.live.find(-idx) == collector.live.end() &&
+			global_refcount_storage_.find(-idx) == global_refcount_storage_.end())
+			continue;
+		char *autoidx_str = global_autoidx_id_storage_new_[-idx];
+		if (autoidx_str != nullptr)
+			global_autoidx_id_storage_old_.insert({-idx, autoidx_str});
+		global_autoidx_id_prefix_storage_old_.insert({-idx, prefix});
+	}
+	global_autoidx_id_prefix_storage_new_.clear();
+	global_autoidx_id_storage_new_.clear();
+	last_gc_autoidx_ = autoidx;
+
 	int64_t time_ns = PerformanceTimer::query() - start;
 	Pass::subtract_from_current_runtime_ns(time_ns);
 	gc_ns += time_ns;

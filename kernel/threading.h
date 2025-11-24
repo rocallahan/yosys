@@ -202,6 +202,7 @@ public:
 			.existing_element((index >> array_level_size_bits) & ((1 << array_level_size_bits) - 1))
 			[index & ((1 << leaf_level_size_bits) - 1)];
 	}
+	void clear() { contents.clear(); }
 private:
 	static constexpr int leaf_level_size_bits = 11;
 	static constexpr int array_level_size_bits = 10;
@@ -226,6 +227,12 @@ private:
 		// Access an element that is guaranteed to preexist
 		U &existing_element(int index) {
 			return *v[index].load(std::memory_order_acquire);
+		}
+		void clear() {
+			for (int i = 0; i < (1 << array_level_size_bits); i++) {
+				delete v[i].load(std::memory_order_acquire);
+				v[i].store(nullptr, std::memory_order_relaxed);
+			}
 		}
 		std::array<std::atomic<U*>, 1 << array_level_size_bits> v;
 	};

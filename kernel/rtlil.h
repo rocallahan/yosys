@@ -132,6 +132,17 @@ namespace RTLIL
 	typedef std::pair<SigSpec, SigSpec> SigSig;
 };
 
+template <typename T>
+class PtrDefaultNull {
+public:
+	PtrDefaultNull(T *value = nullptr) : value(value) {}
+	PtrDefaultNull &operator=(T *value) { this->value = value; return *this; }
+	operator T*&() { return value; }
+	T *operator->() const { return value; }
+private:
+	T *value;
+};
+
 struct RTLIL::IdString
 {
 	struct Storage {
@@ -158,16 +169,26 @@ struct RTLIL::IdString
 	static std::unordered_map<std::string_view, int> global_id_index_;
 	static std::vector<int> global_free_idx_list_;
 
-	// String storage for non-autoidx IDs. Entries are added/erased while holding
-	// global_id_mutex_ but known-existing entries are readable without holding global_id_mutex_.
-	static HugeArray<Storage> global_id_storage_;
-
 	// Shared prefix string storage for autoidx IDs, which have negative
 	// indices. Append the negated (i.e. positive) ID to this string to get
 	// the real string. The prefix strings must live forever.
-	static std::unordered_map<int, const std::string*> global_autoidx_id_prefix_storage_;
+	// This stores data for autoidx IDs created before the last GC. It does not
+	// change between GCs.
+	static std::unordered_map<int, const std::string*> global_autoidx_id_prefix_storage_old_;
 	// Explicit string storage for autoidx IDs
-	static std::unordered_map<int, char*> global_autoidx_id_storage_;
+	// This stores data for autoidx IDs created before the last GC. It does not change between
+	// GCs.
+	static std::unordered_map<int, char*> global_autoidx_id_storage_old_;
+	// Value of autoidx at the last GC. Doesn't change between GCs.
+	static int last_gc_autoidx_;
+
+	// String storage for non-autoidx IDs. Entries are added/erased while holding
+	// global_id_mutex_ but known-existing entries are readable without holding global_id_mutex_.
+	static HugeArray<Storage> global_id_storage_;
+	// This stores data for autoidx IDs created after the last GC.
+	static HugeArray<PtrDefaultNull<const std::string>> global_autoidx_id_prefix_storage_new_;
+	// This stores data for autoidx IDs created after the last GC.
+	static HugeArray<PtrDefaultNull<char>> global_autoidx_id_storage_new_;
 
 #ifdef YOSYS_ENABLE_THREADS
 	static std::mutex global_refcount_storage_mutex_;
@@ -230,7 +251,7 @@ struct RTLIL::IdString
 	// `prefix` must start with '$auto$', end with '$', and live forever.
 	static IdString new_autoidx_with_prefix(const std::string *prefix) {
 		int index = -(autoidx++);
-		global_autoidx_id_prefix_storage_.insert({index, prefix});
+		global_autoidx_id_prefix_storage_new_[-index] = prefix;
 		return from_index(index);
 	}
 
@@ -263,17 +284,21 @@ struct RTLIL::IdString
 	inline const char *c_str() const {
 		if (index_ >= 0)
 			return global_id_storage_.existing_element(index_).buf;
-		auto it = global_autoidx_id_storage_.find(index_);
-		if (it != global_autoidx_id_storage_.end())
-			return it->second;
 
-		const std::string &prefix = *global_autoidx_id_prefix_storage_.at(index_);
-		std::string suffix = std::to_string(-index_);
-		char *c = new char[prefix.size() + suffix.size() + 1];
-		memcpy(c, prefix.data(), prefix.size());
-		memcpy(c + prefix.size(), suffix.c_str(), suffix.size() + 1);
-		global_autoidx_id_storage_.insert(it, {index_, c});
-		return c;
+		if (index_ > -last_gc_autoidx_) {
+			auto it = global_autoidx_id_storage_old_.find(index_);
+			if (it != global_autoidx_id_storage_old_.end())
+				return it->second;
+			char *c = allocate_autoidx_c_str(index_);
+			global_autoidx_id_storage_old_.insert(it, {index_, c});
+			return c;
+		}
+
+		char *&autoidx_str = global_autoidx_id_storage_new_[-index_];
+		if (autoidx_str != nullptr)
+			return autoidx_str;
+		autoidx_str = allocate_autoidx_c_str(index_);
+		return autoidx_str;
 	}
 
 	inline std::string str() const {
@@ -287,7 +312,7 @@ struct RTLIL::IdString
 			*out += global_id_storage_.existing_element(index_).str_view();
 			return;
 		}
-		*out += *global_autoidx_id_prefix_storage_.at(index_);
+		*out += autoidx_prefix(index_);
 		*out += std::to_string(-index_);
 	}
 
@@ -373,7 +398,7 @@ struct RTLIL::IdString
 		if (index_ >= 0) {
 			return const_iterator(global_id_storage_.existing_element(index_));
 		}
-		return const_iterator(global_autoidx_id_prefix_storage_.at(index_), -index_);
+		return const_iterator(&autoidx_prefix(index_), -index_);
 	}
 	const_iterator end() const {
 		return const_iterator();
@@ -383,7 +408,7 @@ struct RTLIL::IdString
 		if (index_ >= 0) {
 			return Substrings(global_id_storage_.existing_element(index_));
 		}
-		return Substrings(global_autoidx_id_prefix_storage_.at(index_), -index_);
+		return Substrings(&autoidx_prefix(index_), -index_);
 	}
 
 	inline bool lt_by_name(const IdString &rhs) const {
@@ -436,7 +461,7 @@ struct RTLIL::IdString
 #endif
 			return *(storage.buf + i);
 		}
-		const std::string &id_start = *global_autoidx_id_prefix_storage_.at(index_);
+		const std::string &id_start = autoidx_prefix(index_);
 		if (i < id_start.size())
 			return id_start[i];
 		i -= id_start.size();
@@ -554,6 +579,21 @@ private:
 	static void prepopulate();
 	// global_id_mutex_ must be held.
 	static int really_insert(std::string_view p, std::unordered_map<std::string_view, int>::iterator &it);
+	static const std::string &autoidx_prefix(int index) {
+		if (index > -last_gc_autoidx_)
+			return *global_autoidx_id_prefix_storage_old_.at(index);
+		return *global_autoidx_id_prefix_storage_new_.existing_element(-index);
+	}
+	static const std::string *lookup_autoidx_prefix(int index) {
+		if (index > -last_gc_autoidx_) {
+			auto it = global_autoidx_id_prefix_storage_old_.find(index);
+			if (it != global_autoidx_id_prefix_storage_old_.end())
+				return it->second;
+			return nullptr;
+		}
+		return global_autoidx_id_prefix_storage_new_[-index];
+	}
+	static char *allocate_autoidx_c_str(int index);
 
 protected:
 	static IdString from_index(int index) {
