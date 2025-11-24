@@ -448,7 +448,7 @@ int main(int argc, char **argv)
 		}
 		if (result.count("autoidx")) {
 			int idx = result["autoidx"].as<uint64_t>();
-			autoidx = idx;
+			autoidx.increase_to_at_least(idx);
 		}
 		if (result.count("hash-seed")) {
 			int seed = result["hash-seed"].as<uint64_t>();

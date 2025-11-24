@@ -771,7 +771,7 @@ struct RTLILFrontendWorker {
 				continue;
 			}
 			if (try_parse_keyword("autoidx")) {
-				autoidx = std::max<int>(autoidx, parse_integer());
+				autoidx.increase_to_at_least(parse_integer());
 				expect_eol();
 				continue;
 			}

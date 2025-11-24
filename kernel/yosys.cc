@@ -80,7 +80,7 @@ extern "C" PyObject* PyInit_pyosys();
 
 YOSYS_NAMESPACE_BEGIN
 
-int autoidx = 1;
+AtomicAutoidx autoidx(1);
 int yosys_xtrace = 0;
 bool yosys_write_versions = true;
 const char* yosys_maybe_version() {

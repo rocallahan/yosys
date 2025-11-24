@@ -112,7 +112,7 @@ int RTLIL::IdString::really_insert(std::string_view p, std::unordered_map<std::s
 				return -*p_autoidx;
 			// Ensure NEW_ID/NEW_ID_SUFFIX will not create collisions with the ID
 			// we're about to create.
-			autoidx = std::max(autoidx, *p_autoidx + 1);
+			autoidx.increase_to_at_least(*p_autoidx + 1);
 		}
 	}
 
@@ -313,7 +313,8 @@ void RTLIL::OwningIdString::collect_garbage()
 	}
 
 	// Migrate new autoidx IDs to the hashtable storage to avoid wasting memory.
-	for (int idx = last_gc_autoidx_; idx < autoidx; ++idx) {
+	int current_autoidx = autoidx;
+	for (int idx = last_gc_autoidx_; idx < current_autoidx; ++idx) {
 		const std::string *prefix = global_autoidx_id_prefix_storage_new_[idx];
 		if (prefix == nullptr)
 			continue;

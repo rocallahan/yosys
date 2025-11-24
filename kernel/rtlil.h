@@ -173,11 +173,11 @@ struct RTLIL::IdString
 	// indices. Append the negated (i.e. positive) ID to this string to get
 	// the real string. The prefix strings must live forever.
 	// This stores data for autoidx IDs created before the last GC. It does not
-	// change between GCs.
+	// change between GCs so doesn't require any locks to be held to access.
 	static std::unordered_map<int, const std::string*> global_autoidx_id_prefix_storage_old_;
 	// Explicit string storage for autoidx IDs
 	// This stores data for autoidx IDs created before the last GC. It does not change between
-	// GCs.
+	// GCs so doesn't require any locks to be held to access.
 	static std::unordered_map<int, char*> global_autoidx_id_storage_old_;
 	// Value of autoidx at the last GC. Doesn't change between GCs.
 	static int last_gc_autoidx_;
@@ -185,9 +185,9 @@ struct RTLIL::IdString
 	// String storage for non-autoidx IDs. Entries are added/erased while holding
 	// global_id_mutex_ but known-existing entries are readable without holding global_id_mutex_.
 	static HugeArray<Storage> global_id_storage_;
-	// This stores data for autoidx IDs created after the last GC.
+	// This stores data for autoidx IDs created after the last GC. No locks are held to access.
 	static HugeArray<PtrDefaultNull<const std::string>> global_autoidx_id_prefix_storage_new_;
-	// This stores data for autoidx IDs created after the last GC.
+	// This stores data for autoidx IDs created after the last GC. No locks are held to access.
 	static HugeArray<PtrDefaultNull<char>> global_autoidx_id_storage_new_;
 
 #ifdef YOSYS_ENABLE_THREADS

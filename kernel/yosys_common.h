@@ -267,7 +267,21 @@ int ceil_log2(int x) YS_ATTRIBUTE(const);
 template<typename T> int GetSize(const T &obj) { return obj.size(); }
 inline int GetSize(RTLIL::Wire *wire);
 
-extern int autoidx;
+// A thread-safe autoidx implementation. The value can only increase.
+class AtomicAutoidx {
+public:
+	constexpr AtomicAutoidx(int value) : value(value) {}
+	int operator++(int) { return value.fetch_add(1, std::memory_order_relaxed); }
+	void increase_to_at_least(int v) {
+		int current = value.load(std::memory_order_relaxed);
+		while (!value.compare_exchange_weak(current, std::max(current, v), std::memory_order_relaxed));
+	}
+	operator int() const { return value.load(std::memory_order_relaxed); }
+private:
+	std::atomic<int> value;
+};
+
+extern AtomicAutoidx autoidx;
 extern int yosys_xtrace;
 extern bool yosys_write_versions;
 
