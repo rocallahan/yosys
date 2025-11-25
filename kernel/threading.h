@@ -131,6 +131,11 @@ public:
 	// The result may be 0.
 	static int pool_size(int reserved_cores, int max_worker_threads);
 
+	// Computes the number of worker threads to use, by dividing work_units among threads.
+	// For testing purposes you can set YOSYS_WORK_UNITS_PER_THREAD to override `work_units_per_thread`.
+	// The result may be 0.
+	static int work_pool_size(int reserved_cores, int work_units, int work_units_per_thread);
+
 	// Create a pool of threads running the given closure (parameterized by thread number).
 	// `pool_size` must be the result of a `pool_size()` call.
 	ThreadPool(int pool_size, std::function<void(int)> b);

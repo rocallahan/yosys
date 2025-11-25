@@ -17,6 +17,20 @@ static int get_max_threads()
 	return max_threads;
 }
 
+static int init_work_units_per_thread_override()
+{
+	const char *v = getenv("YOSYS_WORK_UNITS_PER_THREAD");
+	if (v == nullptr)
+		return 0;
+	return atoi(v);
+}
+
+static int get_work_units_per_thread_override()
+{
+	static int work_units_per_thread = init_work_units_per_thread_override();
+	return work_units_per_thread;
+}
+
 void DeferredLogs::flush()
 {
 	for (auto &m : logs)
@@ -35,6 +49,14 @@ int ThreadPool::pool_size(int reserved_cores, int max_worker_threads)
 #else
         return 0;
 #endif
+}
+
+int ThreadPool::work_pool_size(int reserved_cores, int work_units, int work_units_per_thread)
+{
+	int work_units_per_thread_override = get_work_units_per_thread_override();
+	if (work_units_per_thread_override > 0)
+		work_units_per_thread = work_units_per_thread_override;
+	return pool_size(reserved_cores, work_units / work_units_per_thread);
 }
 
 ThreadPool::ThreadPool(int pool_size, std::function<void(int)> b)
