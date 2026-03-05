@@ -367,11 +367,11 @@ struct OptMergeWorker
 
 		log("Finding identical cells in module `%s'.\n", module->name);
 
-		// Synth of `fft64_width_64.il` (with about 100K cells in a couple of OptMerge passes)
-		// gets optimal performance after around 6 threads on a test machine, after
+		// Synth of `fft64_width_64.il` (with about 113K cells in a couple of OptMerge passes)
+		// gives very slightly increasing performance up to 8 threads on a test machine, after
 		// which more threads seem to give performance differences in the noise.
-		// So, set the "cells per thread" floor to 15000.
-		int num_worker_threads = ThreadPool::pool_size(0, module->cells_size()/15000);
+		// So, set the "cells per thread" floor to 10000.
+		int num_worker_threads = ThreadPool::pool_size(0, module->cells_size()/12000);
 		int workers = std::max(1, num_worker_threads);
 
 		// The main thread doesn't do any work, so if there is only one worker thread,
