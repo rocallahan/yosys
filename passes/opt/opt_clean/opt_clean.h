@@ -56,13 +56,18 @@ struct CleanRunContext {
 	KeepCache keep_cache;
 	Flags flags;
 
+	// Synth of `fft64_width_64.il` (with about 100K cells in a couple of OptClean passes)
+	// gets optimal performance for a value of about 2000 here (i.e. around 50 threads).
+	// (The test machine has 48 cores).
+	static constexpr int CELLS_PER_THREAD = 5000;
+
 private:
 	// Helper to compute thread pool size
 	static int compute_thread_pool_size(const std::vector<RTLIL::Module*>& selected_modules) {
 		int thread_pool_size = 0;
 		for (auto module : selected_modules)
 			thread_pool_size = std::max(thread_pool_size,
-				ThreadPool::work_pool_size(0, module->cells_size(), 1000));
+				ThreadPool::work_pool_size(0, module->cells_size(), CELLS_PER_THREAD));
 		return thread_pool_size;
 	}
 
